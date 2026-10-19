@@ -418,6 +418,7 @@ draftSave.addEventListener("change", () => {
 element("draft-restore").addEventListener("click", () => {
   const saved = readDraft();
   if (!saved.available) {
+    draftSave.checked = false;
     setStatus(false, "Device draft storage unavailable; current work kept.");
     return;
   }
@@ -437,6 +438,7 @@ element("draft-restore").addEventListener("click", () => {
 });
 element("draft-clear").addEventListener("click", () => {
   const cleared = clearDraft();
+  if (!cleared) draftSave.checked = false;
   setStatus(
     cleared,
     cleared

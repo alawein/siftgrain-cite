@@ -76,6 +76,59 @@ test("unavailable storage preserves saving and native export", async ({ page }) 
   const file = await (await event).path();
   expect(JSON.parse(await readFile(file!, "utf8")).reviews).toHaveLength(1);
 });
+for (const [method, button] of [
+  ["getItem", "Restore saved draft"],
+  ["removeItem", "Clear saved draft"],
+] as const) {
+  test(`${method} failure disables draft saving until a fresh opt-in`, async ({ page }) => {
+    await page.goto("./");
+    await load(page);
+    await save(page);
+    const optIn = page.getByLabel("Save draft on this device");
+    await optIn.check();
+    const savedDraft = await page.evaluate(() => localStorage.getItem("claim-review.draft.v1"));
+    expect(JSON.parse(savedDraft!).reviews).toHaveLength(1);
+    await page.evaluate((method) => {
+      const original = Object.getOwnPropertyDescriptor(Storage.prototype, method)!;
+      Object.assign(window, {
+        restoreDraftStorage: () => {
+          Object.defineProperty(Storage.prototype, method, original);
+        },
+      });
+      Storage.prototype[method] = () => {
+        throw new DOMException("blocked", "SecurityError");
+      };
+    }, method);
+
+    await page.getByRole("button", { name: button }).click();
+    await expect(page.locator("#status")).toContainText("storage unavailable; current work kept");
+    await expect(optIn).not.toBeChecked();
+    await expect(page.getByLabel("Review history")).toContainText("Person: Reason");
+
+    await page.evaluate(() =>
+      (window as unknown as { restoreDraftStorage: () => void }).restoreDraftStorage(),
+    );
+    await page.getByLabel("Rationale").fill("Second review after storage recovery");
+    await page.getByRole("button", { name: "Save review" }).click();
+    await expect(page.locator("#status")).toContainText("Saved");
+    expect(await page.evaluate(() => localStorage.getItem("claim-review.draft.v1"))).toBe(
+      savedDraft,
+    );
+    const event = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Export packet", exact: true }).click();
+    const exported = JSON.parse(await readFile((await (await event).path())!, "utf8"));
+    expect(exported.reviews.map((review: { rationale: string }) => review.rationale)).toEqual([
+      "Reason",
+      "Second review after storage recovery",
+    ]);
+
+    await optIn.check();
+    expect(
+      await page.evaluate(() => JSON.parse(localStorage.getItem("claim-review.draft.v1")!)),
+    ).toEqual(exported);
+  });
+}
+
 test("standalone strict CSP blocks network and active imported text, exports W3C selectors", async ({
   page,
 }) => {
