@@ -39,6 +39,13 @@
       <p>Local processing. Export to keep work; closing this page loses unsaved reviews.</p>
       <label for="import">Import packet</label
       ><input id="import" name="import" type="file" accept=".json,application/json" />
+      <section id="import-confirmation" aria-label="Confirm packet replacement" hidden>
+        <p>Importing this packet will replace unsaved work. Choose whether to continue.</p>
+        <div class="packet-actions">
+          <button id="import-replace" type="button">Replace current packet</button>
+          <button id="import-keep" type="button">Keep current work</button>
+        </div>
+      </section>
       <section class="examples" aria-labelledby="examples-heading">
         <h2 id="examples-heading">Try Agent Acceptance</h2>
         <p>

@@ -34,6 +34,7 @@ let packet: Packet | null = null,
   busyCount = 0,
   confirmBuilderUse = false,
   confirmExampleUse = "",
+  pendingNativeImport: { next: Packet; previous: Packet | null; ticket: number } | null = null,
   queueWasComplete = false;
 const claimControl = element<HTMLSelectElement>("claim");
 const citationControl = element<HTMLSelectElement>("citation");
@@ -43,6 +44,11 @@ const startControl = element<HTMLInputElement>("start"),
 const status = element("status"),
   history = element("history");
 const importControl = element<HTMLInputElement>("import");
+const importConfirmation = element("import-confirmation");
+function clearImportConfirmation(): void {
+  pendingNativeImport = null;
+  importConfirmation.hidden = true;
+}
 const builderSection = element("builder");
 const builderToggle = element<HTMLButtonElement>("builder-toggle");
 const builderStatus = element("builder-status");
@@ -208,6 +214,7 @@ function claimLabel(id: string, text: string): string {
   return `${id}: ${short}`;
 }
 function usePacket(next: Packet, note: string): void {
+  clearImportConfirmation();
   packet = next;
   queueWasComplete = false;
   confirmExampleUse = "";
@@ -243,6 +250,8 @@ async function importText(
 }
 importControl.addEventListener("change", async (event) => {
   const ticket = ++generation;
+  const previous = packet;
+  clearImportConfirmation();
   try {
     const target = event.target as HTMLInputElement;
     const file = target.files?.[0];
@@ -251,16 +260,42 @@ importControl.addEventListener("change", async (event) => {
     const bytes = new Uint8Array(await file.arrayBuffer());
     requireValue(!(bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf), "BOM forbidden");
     const raw = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-    await importText(raw, ticket).catch((error) => {
-      if (ticket === generation)
-        setStatus(false, `Import failed; current work kept: ${message(error)}`);
-    });
+    beginBusy();
+    try {
+      const next = await parsePacket(raw, sha256);
+      requireValue(ticket === generation && previous === packet, "Session changed; import again");
+      if (isDirty()) {
+        pendingNativeImport = { next, previous, ticket };
+        importConfirmation.hidden = false;
+        setStatus(false, "Unsaved packet work is kept until you confirm replacement.");
+      } else {
+        usePacket(next, "Imported packet. Export to keep changes.");
+      }
+    } finally {
+      endBusy();
+    }
   } catch (error) {
     if (ticket === generation)
       setStatus(false, `Import failed; current work kept: ${message(error)}`);
   } finally {
     (event.target as HTMLInputElement).value = "";
   }
+});
+element<HTMLButtonElement>("import-replace").addEventListener("click", () => {
+  const pending = pendingNativeImport;
+  if (!pending) return;
+  clearImportConfirmation();
+  if (pending.ticket !== generation || pending.previous !== packet) {
+    setStatus(false, "Session changed; import the packet again.");
+    return;
+  }
+  generation++;
+  usePacket(pending.next, "Imported packet. Export to keep changes.");
+});
+element<HTMLButtonElement>("import-keep").addEventListener("click", () => {
+  if (!pendingNativeImport) return;
+  clearImportConfirmation();
+  setStatus(true, "Current packet kept; replacement cancelled.");
 });
 function exampleLoader(id: string, data: unknown, note: string): void {
   const control = element<HTMLButtonElement>(id);
@@ -324,6 +359,7 @@ element<HTMLFormElement>("review-form").addEventListener("submit", async (event)
     const next = await parsePacket(JSON.stringify(appendReview(previous, review)), sha256);
     requireValue(ticket === generation && previous === packet, "Session changed; save again");
     packet = next;
+    clearImportConfirmation();
     confirmExampleUse = "";
     confirmBuilderUse = false;
     showHistory();

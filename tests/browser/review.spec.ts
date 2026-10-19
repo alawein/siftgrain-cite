@@ -296,6 +296,10 @@ test("acceptance worked judgments are synthetic and revised sources retain stale
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify(worked)),
   });
+  const replace = page.getByRole("button", { name: "Replace current packet" });
+  await expect(replace).toBeVisible();
+  await expect(page.locator("#history p")).toHaveCount(4);
+  await replace.click();
   await expect(page.locator("#status")).toContainText("Imported");
   await expect(page.locator("#review-state")).toContainText("stale");
   await expect(page.locator("#review-state")).toContainText("Original passage unavailable");
@@ -398,6 +402,125 @@ async function importPacket(page: import("@playwright/test").Page) {
   });
   await expect(page.locator("#status")).toContainText("Imported");
 }
+
+async function saveFirstReview(page: import("@playwright/test").Page, rationale: string) {
+  await page.getByLabel("Claim", { exact: true }).selectOption("c1");
+  await page.getByLabel("Span start").fill(String(expected.spans[0][0]));
+  await page.getByLabel("Span end").fill(String(expected.spans[0][1]));
+  await page.getByLabel("Verdict").selectOption(expected.verdicts[0]);
+  await page.getByLabel("Rationale").fill(rationale);
+  await page.getByLabel("Reviewer label").fill("Synthetic exercise");
+  await page.getByRole("button", { name: "Save review" }).click();
+  await expect(page.locator("#status")).toContainText("Saved");
+}
+
+test("dirty native import requires a choice and same-file reselection can confirm replacement", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await importPacket(page);
+  await saveFirstReview(page, "Keep this work unless replacement is confirmed.");
+  const replacement = {
+    name: "replacement.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(input),
+  };
+
+  await page.getByLabel("Import packet").setInputFiles(replacement);
+  const replace = page.getByRole("button", { name: "Replace current packet" });
+  const keep = page.getByRole("button", { name: "Keep current work" });
+  await expect(replace).toBeVisible();
+  await expect(keep).toBeVisible();
+  await expect(page.locator("#history p")).toHaveCount(1);
+  await expect(page.locator("#history")).toContainText(
+    "Keep this work unless replacement is confirmed.",
+  );
+
+  await keep.click();
+  await expect(page.locator("#history p")).toHaveCount(1);
+  await expect(replace).toBeHidden();
+
+  await page.getByLabel("Import packet").setInputFiles(replacement);
+  await expect(replace).toBeVisible();
+  await replace.click();
+  await expect(page.locator("#status")).toContainText("Imported");
+  await expect(page.locator("#history p")).toHaveCount(0);
+});
+
+test("invalid native import preserves reviews without opening replacement confirmation", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await importPacket(page);
+  await saveFirstReview(page, "Retain this review after invalid input.");
+  const corrupt = JSON.parse(input);
+  corrupt.sources[0].text += " Changed";
+
+  await page.getByLabel("Import packet").setInputFiles({
+    name: "invalid-replacement.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(corrupt)),
+  });
+
+  await expect(page.locator("#status")).toContainText("current work kept");
+  await expect(page.locator("#history p")).toHaveCount(1);
+  await expect(page.locator("#history")).toContainText("Retain this review after invalid input.");
+  await expect(page.getByRole("button", { name: "Replace current packet" })).toBeHidden();
+});
+
+test("pending native replacement expires when a new review changes the session", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await importPacket(page);
+  await saveFirstReview(page, "First review remains in the changed session.");
+  await page.getByLabel("Import packet").setInputFiles({
+    name: "replacement.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(input),
+  });
+
+  const replace = page.getByRole("button", { name: "Replace current packet" });
+  await expect(replace).toBeVisible();
+  await saveFirstReview(page, "A newer review invalidates pending replacement.");
+
+  await expect(replace).toBeHidden();
+  await expect(page.locator("#history p")).toHaveCount(2);
+  await expect(page.locator("#history")).toContainText(
+    "First review remains in the changed session.",
+  );
+  await expect(page.locator("#history")).toContainText(
+    "A newer review invalidates pending replacement.",
+  );
+});
+
+test("pending native replacement follows the latest selected file", async ({ page }) => {
+  await page.goto("./");
+  await importPacket(page);
+  await saveFirstReview(page, "Keep this work while choosing a replacement.");
+  await page.getByLabel("Import packet").setInputFiles({
+    name: "first-replacement.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(input),
+  });
+
+  const replace = page.getByRole("button", { name: "Replace current packet" });
+  await expect(replace).toBeVisible();
+  const latest = JSON.parse(input);
+  latest.claims[0].text = "LATEST_SELECTED_PACKET_SENTINEL";
+  await page.getByLabel("Import packet").setInputFiles({
+    name: "latest-replacement.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(latest)),
+  });
+  await expect(replace).toBeVisible();
+  await replace.click();
+
+  await expect(page.locator("#status")).toContainText("Imported");
+  await expect(page.getByLabel("Claim", { exact: true })).toContainText(
+    "LATEST_SELECTED_PACKET_SENTINEL",
+  );
+});
 
 async function fourReviews(page: import("@playwright/test").Page) {
   for (let i = 0; i < 4; i++) {
