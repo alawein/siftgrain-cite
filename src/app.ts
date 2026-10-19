@@ -664,7 +664,12 @@ for (const kind of ["trace", "merge"] as const) {
     beginBusy();
     void (async () => {
       requireValue(file.size <= 5 * 1024 * 1024, "Import exceeds 5 MiB");
-      const raw = await file.text();
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      requireValue(
+        kind !== "merge" || !(bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf),
+        "BOM forbidden",
+      );
+      const raw = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
       let next: Packet;
       if (kind === "trace") next = await importTrace(raw, sha256);
       else {

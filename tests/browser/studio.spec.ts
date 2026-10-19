@@ -1,4 +1,118 @@
 import { test, expect } from "@playwright/test";
+import { readFile } from "node:fs/promises";
+
+const reviewedPacket = JSON.parse(await readFile("examples/reviewed.json", "utf8"));
+const byteMarker = "INVALID_UTF8_SENTINEL";
+function malformedUtf8(value: unknown, bytes: number[]): Buffer {
+  const raw = Buffer.from(JSON.stringify(value));
+  const marker = Buffer.from(byteMarker);
+  const index = raw.indexOf(marker);
+  expect(index).toBeGreaterThanOrEqual(0);
+  return Buffer.concat([
+    raw.subarray(0, index),
+    Buffer.from(bytes),
+    raw.subarray(index + marker.length),
+  ]);
+}
+
+for (const kind of ["trace", "merge"] as const)
+  for (const [encoding, bytes] of [
+    ["invalid byte", [0xff]],
+    ["truncated sequence", [0xe2, 0x82]],
+    ["overlong sequence", [0xc0, 0xaf]],
+  ] as const) {
+    test(`${kind} rejects ${encoding} without changing current work`, async ({ page }) => {
+      await page.goto("/");
+      await page.getByLabel("Import packet", { exact: true }).setInputFiles({
+        name: "base.json",
+        mimeType: "application/json",
+        buffer: Buffer.from(JSON.stringify(reviewedPacket)),
+      });
+      await expect(page.locator("#status")).toContainText("Imported packet");
+      const exportCurrent = async () => {
+        const download = page.waitForEvent("download");
+        await page.getByRole("button", { name: "Export packet", exact: true }).click();
+        return readFile((await (await download).path())!, "utf8");
+      };
+      const before = await exportCurrent();
+      const incoming =
+        kind === "trace"
+          ? { answer: "Synthetic claim", documents: [byteMarker] }
+          : {
+              ...reviewedPacket,
+              reviews: [{ ...reviewedPacket.reviews[0], id: "incoming", rationale: byteMarker }],
+            };
+      await page.locator(`#${kind}-import`).setInputFiles({
+        name: "malformed.json",
+        mimeType: "application/json",
+        buffer: malformedUtf8(incoming, [...bytes]),
+      });
+      await expect(page.locator("#status")).toContainText("Import failed; current work kept");
+      expect(await exportCurrent()).toBe(before);
+    });
+  }
+
+test("reviewer merge rejects a native packet BOM without changing history", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Import packet", { exact: true }).setInputFiles({
+    name: "base.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(reviewedPacket)),
+  });
+  await expect(page.locator("#status")).toContainText("Imported packet");
+  const incoming = {
+    ...reviewedPacket,
+    reviews: [{ ...reviewedPacket.reviews[0], id: "bom-review" }],
+  };
+  await page.locator("#merge-import").setInputFiles({
+    name: "bom.json",
+    mimeType: "application/json",
+    buffer: Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), Buffer.from(JSON.stringify(incoming))]),
+  });
+  await expect(page.locator("#status")).toContainText("BOM forbidden");
+  await expect(page.locator("#history p")).toHaveCount(reviewedPacket.reviews.length);
+});
+
+test("trace BOM and valid Unicode remain intact through trace import and reviewer merge", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const source = "Literal evidence 😀 �\r\nSecond line";
+  const trace = JSON.stringify({ answer: "Synthetic claim", documents: [source] });
+  await page.locator("#trace-import").setInputFiles({
+    name: "unicode.jsonl",
+    mimeType: "application/json",
+    buffer: Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), Buffer.from(`${trace}\r\n${trace}`)]),
+  });
+  await expect(page.locator("#status")).toContainText("Trace imported");
+  await page.getByLabel("Span start").fill("0");
+  await page.getByLabel("Span end").fill("7");
+  await page.getByLabel("Reviewer label").fill("Synthetic reviewer");
+  await page.getByLabel("Rationale").fill("Synthetic judgment");
+  await page.getByRole("button", { name: "Save review", exact: true }).click();
+  await expect(page.locator("#status")).toContainText("Saved");
+  const exportCurrent = async () => {
+    const download = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Export packet", exact: true }).click();
+    return JSON.parse(await readFile((await (await download).path())!, "utf8"));
+  };
+  const before = await exportCurrent();
+  expect(before.sources.map((row: { text: string }) => row.text)).toEqual([source, source]);
+  const incoming = structuredClone(before);
+  incoming.reviews[0].id = "unicode-review";
+  incoming.reviews[0].reviewer = "审阅者 😀 �";
+  incoming.reviews[0].rationale = "Literal replacement � and emoji 😀 stay unchanged.";
+  await page.locator("#merge-import").setInputFiles({
+    name: "unicode-merge.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(incoming)),
+  });
+  await expect(page.locator("#status")).toContainText("histories merged");
+  const after = await exportCurrent();
+  expect(after.sources).toEqual(before.sources);
+  expect(after.reviews).toEqual([...before.reviews, incoming.reviews[0]]);
+});
+
 test("completion celebration occurs once rather than after every saved revision", async ({
   page,
 }) => {
