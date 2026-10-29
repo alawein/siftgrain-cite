@@ -3,12 +3,12 @@
 GitHub publication completed; npm publication remains pending.
 
 v0.3.2 is tagged at `6759ad71231f2e1b59ed8b5913ffad6dfd547970` and its
-[GitHub Release](https://github.com/alawein/claim-review/releases/tag/v0.3.2)
-is public. [Canonical run 37828847596](https://github.com/alawein/claim-review/actions/runs/37828847596)
+[GitHub Release](https://github.com/alawein/siftgrain-cite/releases/tag/v0.3.2)
+is public. [Canonical run 37828847596](https://github.com/alawein/siftgrain-cite/actions/runs/37828847596)
 passed 96 unit tests, 10 Python tests, 48 browser cases, build and hosted
 provenance checks. Its corrected absolute tarball path reached npm authentication
 and failed with `ENEEDAUTH`; npm publication remains unverified.
-[Pages run 37828847613](https://github.com/alawein/claim-review/actions/runs/37828847613)
+[Pages run 37828847613](https://github.com/alawein/siftgrain-cite/actions/runs/37828847613)
 succeeded at that revision. Owner CLI authentication remains blocked with E401
 pending human web login/OTP and trusted publisher setup.
 

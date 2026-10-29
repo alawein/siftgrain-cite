@@ -111,9 +111,9 @@ preserves Unicode/Arabic text; manual screen-reader coverage is unverified.
 Publication preparation and observed security settings are documented in
 [release readiness](RELEASE_READY.md) and [security settings](SECURITY_SETTINGS.md).
 
-v0.3.0 merged in [PR19](https://github.com/alawein/claim-review/pull/19) and has an
-immutable [GitHub Release](https://github.com/alawein/claim-review/releases/tag/v0.3.0).
-Its npm [publish attempt](https://github.com/alawein/claim-review/actions/runs/37799350424)
+v0.3.0 merged in [PR19](https://github.com/alawein/siftgrain-cite/pull/19) and has an
+immutable [GitHub Release](https://github.com/alawein/siftgrain-cite/releases/tag/v0.3.0).
+Its npm [publish attempt](https://github.com/alawein/siftgrain-cite/actions/runs/37799350424)
 failed with `ENEEDAUTH`; registry publication is not established. v0.3.1 adds
 interoperability and study preparation checks plus a canonical artifact pipeline,
 and its canonical hosted assets are published on GitHub. Its npm attempt failed with EALLOWGIT from an ambiguous relative tarball path; v0.3.2 corrected that invocation, published canonical GitHub assets and

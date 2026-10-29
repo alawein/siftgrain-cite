@@ -14,7 +14,7 @@ behavior changes. Exact source hashes and UTF-16 spans; judgments are self-repor
 - Never manually edit the lock, spend money, expose secrets or bypass a hook.
 
 The owner selected chat option (b) on October 8, 2026: complete the reviewed
-v0.3.0 release delivery for alawein/claim-review, alawein/eval-audit and
+v0.3.0 release delivery for alawein/siftgrain-cite, alawein/eval-audit and
 alawein/outcome-check, targeting main. This explicitly authorizes merging the
 existing hardening PRs, registry trusted-publisher configuration, v0.3.0 tags,
 npm/PyPI publication and GitHub Releases. It is the plain-language equivalent
