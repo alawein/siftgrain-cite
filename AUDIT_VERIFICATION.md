@@ -25,11 +25,11 @@ Historical sections below refer to their stated revisions/dates. They are retain
 
 ## Current state, October 8, 2026 closeout
 
-v0.3.0 was merged by [PR19](https://github.com/alawein/claim-review/pull/19) at
+v0.3.0 was merged by [PR19](https://github.com/alawein/siftgrain-cite/pull/19) at
 commit `876d78580bca07c3ab7f7ae7c6530db9bd1d9b69` and has an immutable
-[tag](https://github.com/alawein/claim-review/tree/v0.3.0) and
-[GitHub Release](https://github.com/alawein/claim-review/releases/tag/v0.3.0).
-The [publish workflow](https://github.com/alawein/claim-review/actions/runs/37799350424)
+[tag](https://github.com/alawein/siftgrain-cite/tree/v0.3.0) and
+[GitHub Release](https://github.com/alawein/siftgrain-cite/releases/tag/v0.3.0).
+The [publish workflow](https://github.com/alawein/siftgrain-cite/actions/runs/37799350424)
 failed with `ENEEDAUTH`. npm readback returned 404 for claim-review@0.3.0;
 successful registry publication is not established. Its locally built GitHub
 assets do not establish hosted provenance. Existing assets/tags are preserved.
@@ -39,12 +39,12 @@ excluding the entire Dependabot family; credentials remain owner-entered.
 v0.3.1 is tagged and its canonical hosted assets are published on GitHub; npm failed with EALLOWGIT in run 37826160022.
 
 v0.3.2 is tagged at `6759ad71231f2e1b59ed8b5913ffad6dfd547970` and its
-[GitHub Release](https://github.com/alawein/claim-review/releases/tag/v0.3.2)
-is public. [Canonical run 37828847596](https://github.com/alawein/claim-review/actions/runs/37828847596)
+[GitHub Release](https://github.com/alawein/siftgrain-cite/releases/tag/v0.3.2)
+is public. [Canonical run 37828847596](https://github.com/alawein/siftgrain-cite/actions/runs/37828847596)
 passed 96 unit tests, 10 Python tests, 48 browser cases, build and hosted
 provenance checks. Its corrected absolute tarball path reached npm authentication
 and failed with `ENEEDAUTH`; npm publication remains unverified.
-[Pages run 37828847613](https://github.com/alawein/claim-review/actions/runs/37828847613)
+[Pages run 37828847613](https://github.com/alawein/siftgrain-cite/actions/runs/37828847613)
 succeeded at that revision. Owner CLI authentication remains blocked with E401
 pending human web login/OTP and trusted publisher setup.
 
@@ -100,7 +100,7 @@ revisit the Firefox failure.
 
 Historical PR3 readback by coordinating agent: 31 Actions checks SUCCESS; the
 remaining CodeRabbit StatusContext was PENDING. The audit's odd check count does
-not establish a failing product test. [PR3 checks](https://github.com/alawein/claim-review/pull/3/checks).
+not establish a failing product test. [PR3 checks](https://github.com/alawein/siftgrain-cite/pull/3/checks).
 
 ## v0.3.0 verified implementation
 
@@ -159,7 +159,7 @@ and final review belong to the coordinator before push/draft PR.
 | Merge/tag/release/publish | Prepared, blocked by owner gates | `RELEASE_READY.md` includes commands and registry setup, and `RELEASE_NOTES.md` is ready for the release gate. |
 | Final independent review | Done | Independent review found two eval adapter defects; both reproduced, regression-tested and independently rechecked after fixes. No remaining review findings. |
 | Final clean-clone verification | Done | Fresh installs, full suites, lint/types, schemas and artifacts passed; exact coordinator evidence below. |
-| Push and one draft PR | Done | [Draft PR #19](https://github.com/alawein/claim-review/pull/19) opened on the authorized branch; no merge/main/tag/deploy/settings change. |
+| Push and one draft PR | Done | [Draft PR #19](https://github.com/alawein/siftgrain-cite/pull/19) opened on the authorized branch; no merge/main/tag/deploy/settings change. |
 
 ### Study status
 

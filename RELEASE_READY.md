@@ -2,22 +2,22 @@
 
 ## Current state, October 8, 2026
 
-v0.3.0 merged through [PR19](https://github.com/alawein/claim-review/pull/19),
+v0.3.0 merged through [PR19](https://github.com/alawein/siftgrain-cite/pull/19),
 commit `876d78580bca07c3ab7f7ae7c6530db9bd1d9b69`. Its immutable
-[tag](https://github.com/alawein/claim-review/tree/v0.3.0) and
-[GitHub Release](https://github.com/alawein/claim-review/releases/tag/v0.3.0)
-exist. The npm [workflow](https://github.com/alawein/claim-review/actions/runs/37799350424)
+[tag](https://github.com/alawein/siftgrain-cite/tree/v0.3.0) and
+[GitHub Release](https://github.com/alawein/siftgrain-cite/releases/tag/v0.3.0)
+exist. The npm [workflow](https://github.com/alawein/siftgrain-cite/actions/runs/37799350424)
 failed with `ENEEDAUTH`; npm returned 404 for claim-review@0.3.0 on October 8.
 The GitHub assets were built locally and do not establish hosted build provenance.
 Preserve those tags and assets. v0.3.1 GitHub assets are published from the canonical hosted build; its npm attempt failed before authentication with EALLOWGIT.
 
 v0.3.2 is tagged at `6759ad71231f2e1b59ed8b5913ffad6dfd547970` and its
-[GitHub Release](https://github.com/alawein/claim-review/releases/tag/v0.3.2)
-is public. [Canonical run 37828847596](https://github.com/alawein/claim-review/actions/runs/37828847596)
+[GitHub Release](https://github.com/alawein/siftgrain-cite/releases/tag/v0.3.2)
+is public. [Canonical run 37828847596](https://github.com/alawein/siftgrain-cite/actions/runs/37828847596)
 passed 96 unit tests, 10 Python tests, 48 browser cases, build and hosted
 provenance checks. Its corrected absolute tarball path reached npm authentication
 and failed with `ENEEDAUTH`; npm publication remains unverified.
-[Pages run 37828847613](https://github.com/alawein/claim-review/actions/runs/37828847613)
+[Pages run 37828847613](https://github.com/alawein/siftgrain-cite/actions/runs/37828847613)
 succeeded at that revision. Owner CLI authentication remains blocked with E401
 pending human web login/OTP and trusted publisher setup.
 
@@ -151,11 +151,11 @@ retain matching assets and reconcile the body after all asset checks pass.
 
 ## Actual v0.3.1 execution and corrective v0.3.2
 
-[Run 37826160022](https://github.com/alawein/claim-review/actions/runs/37826160022)
+[Run 37826160022](https://github.com/alawein/siftgrain-cite/actions/runs/37826160022)
 ran from immutable v0.3.1 at merged main
 `d2fb1b023b6ff0d9f1159005710778b72adedd0b`. Its build passed 94 unit tests,
 48 browser cases and schema validation; hosted artifact attestation succeeded.
-The [v0.3.1 GitHub Release](https://github.com/alawein/claim-review/releases/tag/v0.3.1)
+The [v0.3.1 GitHub Release](https://github.com/alawein/siftgrain-cite/releases/tag/v0.3.1)
 contains the canonical tarball and HTML. npm failed with EALLOWGIT: npm 12.2.0
 interpreted `release-assets/claim-review-0.3.1.tgz` as GitHub shorthand.
 This is a local-path parsing defect, not evidence of successful npm publication.
