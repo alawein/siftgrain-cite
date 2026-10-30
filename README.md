@@ -1,28 +1,25 @@
 # Siftgrain Cite
 
-Review claims against exact source passages and export the reasoning.
-
-Siftgrain Cite is the human citation-review tool in the Siftgrain suite, alongside
-[Siftgrain Audit](https://github.com/alawein/siftgrain-audit) for evaluation
-completeness and [Siftgrain State](https://github.com/alawein/siftgrain-state)
-for checking requested outcomes against supplied observations. Cite records a
-reviewer's judgment and exact evidence span; it does not determine claim truth.
+Offline browser tool for researchers and reviewers who check claims against exact source passages and export the reasoning.
 
 ![Siftgrain Cite wordmark](brand/wordmark.svg)
 
+Cite records a reviewer's judgment and exact evidence span; it does not determine claim truth. It is the human citation-review tool in the Siftgrain suite, alongside
+[Siftgrain Audit](https://github.com/alawein/siftgrain-audit) for evaluation
+completeness and [Siftgrain State](https://github.com/alawein/siftgrain-state)
+for checking requested outcomes against supplied observations. The npm package is named `claim-review`.
+
 Import local RAG trace JSON/JSONL, triage with Alt+J / Alt+K, merge reviewer packets, and compare Cohen/Fleiss kappa or nominal Krippendorff alpha. Labels remain self-reported. The native packet preserves all history; CSV and AIS/ALCE analysis labels have the bounded [adapter contract](docs/adapters.md).
 
-Dark is the default; Appearance offers accessible light. Calm, Cartoon, Pixel and Lab change density and motion. Preferences store only those choices with guarded access, independently of opt-in packet drafts.
+Dark is the default; Appearance offers a light theme. Calm, Cartoon, Pixel and Lab change density and motion. Preferences store only those choices with guarded access, independently of opt-in packet drafts.
 
-| Cartoon | Calm |
-| --- | --- |
-| ![Recorded Cartoon workflow](docs/demos/cartoon.gif) | ![Recorded Calm workflow](docs/demos/calm.gif) |
-| Pixel | Lab |
-| ![Recorded Pixel workflow](docs/demos/pixel.gif) | ![Recorded Lab workflow](docs/demos/lab.gif) |
+| Cartoon | Calm | Pixel | Lab |
+| --- | --- | --- | --- |
+| ![Recorded Cartoon workflow](docs/demos/cartoon.gif) | ![Recorded Calm workflow](docs/demos/calm.gif) | ![Recorded Pixel workflow](docs/demos/pixel.gif) | ![Recorded Lab workflow](docs/demos/lab.gif) |
 
 These are recordings from the real offline app using explicitly synthetic scripted judgments. They do not represent human annotations.
 
-[Benchmark results](RESULTS.md), [performance](PERF.md), [research](RESEARCH.md), [migration](MIGRATION.md), and [requirement coverage](docs/requirements.md). Run `python benchmarks/fetch.py` once, then `make bench` or `npm run bench` to generate local dev/test packets, separate answer keys and a downloadable ZIP. External text remains fetch-only.
+More: [benchmark results](RESULTS.md), [performance](PERF.md), [research](RESEARCH.md), [migration](MIGRATION.md), and [requirement coverage](docs/requirements.md). To build the local benchmark packets, install Python and Node, run `python benchmarks/fetch.py` once (it needs network access), then `npm run bench` (`make bench` is an alias). The run generates dev/test packets, separate answer keys and a downloadable ZIP. External text remains fetch-only.
 
 ![Evidence review](assets/label-purpose.svg)
 ![TypeScript](assets/label-stack.svg)
@@ -36,8 +33,8 @@ your review history. No account, model, or server.
 
 ## Use
 
-Build this checkout with `npm ci` and `npm run build`, then open `dist/index.html`.
-Published GitHub Pages and release downloads can predate this source version.
+Clone the repository, install Node 22.12 or newer, then build with `npm ci` and
+`npm run build` and open `dist/index.html`.
 Start with **New packet** (type sources and claims; hashes are computed in the
 page and pasted CRLF arrives as LF), **Load synthetic example**, or **Import packet**.
 Choose a claim/citation, select source text with **Use selected span** or enter
@@ -108,21 +105,10 @@ and compatibility with third-party annotation systems are unverified. English UI
 preserves Unicode/Arabic text; manual screen-reader coverage is unverified.
 [Evaluation](docs/evaluation.md), [study protocol](docs/study-protocol.md),
 [bounded usefulness](docs/usefulness.md), [provenance](docs/provenance.md).
-Publication preparation and observed security settings are documented in
-[release readiness](RELEASE_READY.md) and [security settings](SECURITY_SETTINGS.md).
-
-v0.3.0 merged in [PR19](https://github.com/alawein/siftgrain-cite/pull/19) and has an
-immutable [GitHub Release](https://github.com/alawein/siftgrain-cite/releases/tag/v0.3.0).
-Its npm [publish attempt](https://github.com/alawein/siftgrain-cite/actions/runs/37799350424)
-failed with `ENEEDAUTH`; registry publication is not established. v0.3.1 adds
-interoperability and study preparation checks plus a canonical artifact pipeline,
-and its canonical hosted assets are published on GitHub. Its npm attempt failed with EALLOWGIT from an ambiguous relative tarball path; v0.3.2 corrected that invocation, published canonical GitHub assets and
-passed hosted provenance checks in run 37828847596; npm then failed with
-ENEEDAUTH. Pages run 37828847613 succeeded at merged revision 6759ad7. Independent study labels remain pending.
 
 ## Develop
 
-Node 22.23.2 (minimum 22.12), locked dev-only dependencies:
+Node 22.12 or newer (`.node-version` pins 22.23.2), locked dev-only dependencies:
 
 ```sh
 npm ci
@@ -139,17 +125,13 @@ JSON Schema alone cannot establish those semantic invariants.
 
 Build creates `dist/index.html` with inline CSS, one classic bundled script and a
 CSP permitting only their exact hashes, with `default-src 'none'`. `node scripts/serve.mjs`
-serves that build at 127.0.0.1:4173. No runtime package or shared-repo dependency; private vendored design tokens build into the HTML.
+serves that build at 127.0.0.1:4173. No runtime package or shared-repo dependency; local design tokens build into the HTML.
 Tests cover native round trips, invalid-input preservation, randomized Unicode,
 exact selectors, guarded drafts, inert active text and offline local-file operation
 in Chromium, Firefox and WebKit.
 The acceptance demo also checks confirmation before replacing work, human review and
 export/reimport, stale-source history, and the evidence layout at 1440px and 390px.
 These checks establish workflow and integrity, not semantic accuracy.
-
-For stack naming and structure, follow the
-[shared repository conventions](https://github.com/alawein/.github/blob/main/docs/system/repos.md#stack-conventions)
-alongside this project's local instructions and contract.
 
 ## Related work and how this differs
 
@@ -167,5 +149,4 @@ This tool records supplied human judgments; it does not execute those evaluation
 or establish agreement between annotators. The study protocol describes proposed
 measurement without fabricated annotations or results.
 
-MIT code; original CC0 synthetic AI-assisted non-client examples. Demand, adoption,
-production ownership, annotator reliability and semantic accuracy remain unproven.
+Code is MIT licensed (see [LICENSE](LICENSE)).
