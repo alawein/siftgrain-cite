@@ -13,6 +13,8 @@
     "test": "node scripts/generate-validator.mjs && vitest run",
     "build": "node scripts/build.mjs",
     "check": "npm run lint && npm test && npm run build",
+    "check:all": "npm run check && npm run validate:schema && node scripts/pack-check.mjs",
+    "pack-check": "node scripts/pack-check.mjs",
     "fix": "eslint . --fix && prettier --write .",
     "test:browser": "playwright test",
     "validate:schema": "node scripts/validate-schema.mjs",
