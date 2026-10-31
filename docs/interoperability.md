@@ -12,7 +12,7 @@ Its exact SHA-256 is
 `c10fd886c5c726fbfd51747b8677eb8f7d02c039357269622de7382e5c20d410`.
 The test loader accepts only the exported `http://www.w3.org/ns/anno.jsonld`
 identifier and returns these pinned local bytes. Every other context request
-fails. The URI is data in claim-review; the product never loads it or fetches
+fails. The URI is data in Siftgrain Cite; the product never loads it or fetches
 source text. A third-party consumer's default loader may fetch it unless configured.
 
 [Frozen synthetic fixtures](../fixtures/annotation-interop.json) cover emoji,
