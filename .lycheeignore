@@ -1,2 +1,2 @@
-# Authenticated maintainer-only UI; exact click path retained in SECURITY_SETTINGS.md.
+# Authenticated maintainer-only UI is excluded from public link checks.
 ^https://github\.com/alawein/siftgrain-cite/settings/security_analysis/?$
