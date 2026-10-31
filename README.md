@@ -19,10 +19,6 @@ This recording shows an earlier build with a look selector that has since been r
 
 More: [benchmark results](docs/results.md), [performance](docs/performance.md), [research](docs/research.md), and [migration](docs/migration.md). To build the local benchmark packets, install Python and Node, run `python benchmarks/fetch.py` once (it needs network access), then `npm run bench` (`make bench` is an alias). The run generates dev/test packets, separate answer keys and a downloadable ZIP. External text remains fetch-only.
 
-![Evidence review](assets/label-purpose.svg)
-![TypeScript](assets/label-stack.svg)
-![Offline browser](assets/label-runtime.svg)
-
 Import source text, select a passage, and record whether it supports, partly
 supports, contradicts, or cannot verify a claim. Export the packet to preserve
 your review history. No account, model, or server.
