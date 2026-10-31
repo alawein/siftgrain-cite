@@ -172,10 +172,11 @@ function anchors(markdown) {
   const ids = new Set();
   function visibleText(value) {
     return value.replace(
-      /\\([\\`*{}[\]()#+\-.!_<>])|(`+)([\s\S]*?)\2(?!`)|<[a-z][a-z\d:-]*\b(?:[^<>"']|"[^"]*"|'[^']*')*>/gi,
+      /\\([\\`*{}[\]()#+\-.!_<>])|(`+)([\s\S]*?)\2(?!`)|<\/?[a-z][a-z\d:-]*\b(?:[^<>"']|"[^"]*"|'[^']*')*>/gi,
       (token, escaped, ticks, code) => {
         if (escaped) return escaped;
         if (ticks) return code;
+        if (token.startsWith("</")) return "";
         for (const attribute of token.matchAll(
           /\s+([^\s"'<>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g,
         )) {
@@ -328,4 +329,13 @@ test("HTML-looking inline-code heading text stays visible in its slug", () => {
   expect(anchors("# Use `<code>` now\n# `<!--code-->`")).toEqual(
     new Set(["use-code-now", "--code--"]),
   );
+});
+
+test("opening and closing HTML formatting tags leave the rendered heading slug", () => {
+  const fixture = new Map([
+    ["README.md", "[jump](guide.md#use-review-now)"],
+    ["guide.md", "# Use <code>review</code> now"],
+  ]);
+  expect(linkIssues(fixture, [...fixture.keys()])).toEqual([]);
+  expect(anchors('</a id="ghost">')).not.toContain("ghost");
 });
