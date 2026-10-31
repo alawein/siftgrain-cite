@@ -508,6 +508,73 @@ test("invalid native import preserves reviews without opening replacement confir
   await expect(page.getByRole("button", { name: "Replace current packet" })).toBeHidden();
 });
 
+async function startReadingReplacement(page: import("@playwright/test").Page) {
+  return page.evaluateHandle(
+    (raw) =>
+      new Promise<() => void>((started) => {
+        const file = new File([raw], "replacement.json", { type: "application/json" });
+        file.arrayBuffer = async () => {
+          await new Promise<void>((resume) => started(resume));
+          return File.prototype.arrayBuffer.call(file);
+        };
+        const files = new DataTransfer();
+        files.items.add(file);
+        const control = document.querySelector<HTMLInputElement>("#import")!;
+        control.files = files.files;
+        control.dispatchEvent(new Event("change", { bubbles: true }));
+      }),
+    input,
+  );
+}
+
+test("an older save cannot commit while a replacement file is still being read", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await importPacket(page);
+  await saveFirstReview(page, "Keep this saved review.");
+  await page.getByLabel("Rationale").fill("Superseded save.");
+
+  const releaseSave = await page.evaluateHandle(
+    () =>
+      new Promise<() => void>((started) => {
+        const original = SubtleCrypto.prototype.digest;
+        SubtleCrypto.prototype.digest = async function (...args) {
+          SubtleCrypto.prototype.digest = original;
+          await new Promise<void>((resume) => started(resume));
+          return original.apply(this, args);
+        };
+        document.querySelector<HTMLFormElement>("#review-form")!.requestSubmit();
+      }),
+  );
+  const releaseFile = await startReadingReplacement(page);
+
+  await releaseSave.evaluate((resume) => resume());
+  await expect(page.locator("#status")).toContainText("Session changed; save again");
+  await expect(page.locator("#history p")).toHaveCount(1);
+  await releaseFile.evaluate((resume) => resume());
+  await expect(page.getByRole("button", { name: "Replace current packet" })).toBeVisible();
+  await page.locator("#import-keep").click();
+  await expect(page.locator("#history p")).toHaveCount(1);
+  await expect(page.locator("#history")).toContainText("Keep this saved review.");
+});
+
+test("a review saved during a native file read preserves the review and reports the conflict", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await importPacket(page);
+  const releaseFile = await startReadingReplacement(page);
+  await saveFirstReview(page, "Saved while the file was being read.");
+  await releaseFile.evaluate((resume) => resume());
+  await expect(page.locator("#status")).toContainText(
+    "Import failed; current work kept: Session changed; import again",
+  );
+  await expect(page.getByRole("button", { name: "Replace current packet" })).toBeHidden();
+  await expect(page.locator("#history p")).toHaveCount(1);
+  await expect(page.locator("#history")).toContainText("Saved while the file was being read.");
+});
+
 test("pending native replacement expires when a new review changes the session", async ({
   page,
 }) => {

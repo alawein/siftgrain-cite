@@ -1,4 +1,4 @@
-import type { Packet } from "./core/packet";
+import type { Packet } from "../core/packet";
 const key = "claim-review.draft.v1";
 export function saveDraft(packet: Packet | null): boolean {
   try {

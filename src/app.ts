@@ -15,24 +15,16 @@ import acceptanceReviewed from "../examples/acceptance-reviewed.json";
 import { webAnnotations } from "./core/annotation.js";
 import { importTrace, labelExport, csvExport } from "./core/adapters.js";
 import { agreement, mergePackets } from "./core/coordination.js";
-import { setupViewer } from "./viewer.js";
-import { saveDraft, readDraft, clearDraft } from "./draft.js";
+import { setupViewer } from "./ui/viewer.js";
+import { saveDraft, readDraft, clearDraft } from "./ui/draft.js";
+import { element, message } from "./ui/dom.js";
+import { beginBusy, endBusy, isBusy, setStatus, setBuilderStatus } from "./ui/status.js";
+import { createStore } from "./ui/store.js";
 
 setupViewer();
 
-function element<T extends HTMLElement>(id: string): T {
-  const node = document.getElementById(id);
-  if (!node) throw new Error(`Missing control ${id}`);
-  return node as T;
-}
-function message(error: unknown): string {
-  return String(error).replace(/^Error:\s*/, "");
-}
-let packet: Packet | null = null,
-  generation = 0,
-  lastExport = "",
-  busyCount = 0,
-  confirmBuilderUse = false,
+const store = createStore();
+let confirmBuilderUse = false,
   confirmExampleUse = "",
   pendingNativeImport: { next: Packet; previous: Packet | null; ticket: number } | null = null;
 const claimControl = element<HTMLSelectElement>("claim");
@@ -40,8 +32,7 @@ const citationControl = element<HTMLSelectElement>("citation");
 const sourceControl = element<HTMLTextAreaElement>("source-text");
 const startControl = element<HTMLInputElement>("start"),
   endControl = element<HTMLInputElement>("end");
-const status = element("status"),
-  history = element("history");
+const history = element("history");
 const importControl = element<HTMLInputElement>("import");
 const importConfirmation = element("import-confirmation");
 function clearImportConfirmation(): void {
@@ -50,56 +41,18 @@ function clearImportConfirmation(): void {
 }
 const builderSection = element("builder");
 const builderToggle = element<HTMLButtonElement>("builder-toggle");
-const builderStatus = element("builder-status");
 const draftSave = element<HTMLInputElement>("draft-save");
 draftSave.checked = false;
-const busyControls = [
-  importControl,
-  element<HTMLButtonElement>("example"),
-  element<HTMLButtonElement>("acceptance-example"),
-  element<HTMLButtonElement>("acceptance-worked"),
-  element<HTMLButtonElement>("export"),
-  element<HTMLButtonElement>("export-w3c"),
-  element<HTMLButtonElement>("draft-restore"),
-  builderToggle,
-];
 function options(control: HTMLSelectElement, rows: { id: string; label: string }[]): void {
   control.replaceChildren(...rows.map((row) => new Option(row.label, row.id)));
 }
-function showOnStatus(node: HTMLElement, ok: boolean, text: string): void {
-  node.textContent = text;
-  node.classList.toggle("error", !ok);
-  node.setAttribute("role", ok ? "status" : "alert");
-  if (!ok) node.focus();
-}
-function setStatus(ok: boolean, text: string): void {
-  showOnStatus(status, ok, text);
-}
-function setBusyStatus(ok: boolean, text: string): void {
-  showOnStatus(builderStatus, ok, text);
-}
-function setBusy(busy: boolean): void {
-  status.setAttribute("aria-busy", String(busy));
-  for (const control of busyControls) control.toggleAttribute("disabled", busy);
-}
-function beginBusy(): void {
-  busyCount++;
-  setBusy(true);
-}
-function endBusy(): void {
-  busyCount = Math.max(0, busyCount - 1);
-  if (busyCount === 0) setBusy(false);
-}
-function isDirty(): boolean {
-  return !!packet && JSON.stringify(packet) !== lastExport;
-}
 function source(): Packet["sources"][number] {
-  const value = packet?.sources.find((row) => row.id === citationControl.value);
+  const value = store.get()?.sources.find((row) => row.id === citationControl.value);
   requireValue(!!value, "Select a citation with source text");
   return value;
 }
 function showExcerpt(): void {
-  if (!packet || !citationControl.value) return;
+  if (!store.get() || !citationControl.value) return;
   const value = source(),
     start = Number(startControl.value),
     end = Number(endControl.value);
@@ -137,6 +90,7 @@ function showSource(): void {
   showReviewState();
 }
 function showClaim(): void {
+  const packet = store.get();
   const claim = packet?.claims.find((row) => row.id === claimControl.value);
   element("claim-text").textContent = claim?.text ?? "No claim selected";
   options(
@@ -149,6 +103,7 @@ function showClaim(): void {
   showSource();
 }
 function showHistory(): void {
+  const packet = store.get();
   if (packet) {
     const metrics = agreement(packet);
     const value = (n: number | null) => (n === null ? "Not enough ratings" : n.toFixed(3));
@@ -158,7 +113,7 @@ function showHistory(): void {
     element("agreement").textContent = "Import a packet to compare self-reported reviewer labels.";
   const total = packet?.claims.reduce((n, c) => n + c.citation_ids.length, 0) ?? 0;
   const done = packet
-    ? latestReviews(packet).filter((r) => reviewState(packet!, r) === "valid").length
+    ? latestReviews(packet).filter((r) => reviewState(packet, r) === "valid").length
     : 0;
   element("queue-state").textContent =
     `${done} of ${total} citation pairs have current reviews. This is completion, not accuracy.`;
@@ -183,6 +138,7 @@ function showHistory(): void {
   showReviewState();
 }
 function showReviewState(): void {
+  const packet = store.get();
   const node = element("review-state");
   const review = packet
     ? latestReviews(packet).find(
@@ -209,11 +165,13 @@ function claimLabel(id: string, text: string): string {
   const short = points.length > 80 ? `${points.slice(0, 77).join("")}…` : text;
   return `${id}: ${short}`;
 }
-function usePacket(next: Packet, note: string): void {
+store.subscribe(() => {
   clearImportConfirmation();
-  packet = next;
   confirmExampleUse = "";
   confirmBuilderUse = false;
+});
+function usePacket(next: Packet, note: string, ticket?: number): void {
+  store.set(next, ticket);
   options(
     claimControl,
     next.claims.map((row) => ({ id: row.id, label: claimLabel(row.id, row.text) })),
@@ -224,7 +182,7 @@ function usePacket(next: Packet, note: string): void {
   persistDraft();
 }
 function persistDraft(): void {
-  if (draftSave.checked && !saveDraft(packet)) {
+  if (draftSave.checked && !saveDraft(store.get())) {
     draftSave.checked = false;
     setStatus(false, "Device draft storage unavailable; work kept in memory. Export to keep it.");
   }
@@ -237,15 +195,15 @@ async function importText(
   beginBusy();
   try {
     const next = await parsePacket(raw, sha256);
-    if (ticket !== generation) return;
-    usePacket(next, note);
+    if (ticket !== store.ticket()) return;
+    usePacket(next, note, ticket);
   } finally {
     endBusy();
   }
 }
 importControl.addEventListener("change", async (event) => {
-  const ticket = ++generation;
-  const previous = packet;
+  const ticket = store.beginOperation();
+  const previous = store.get();
   clearImportConfirmation();
   try {
     const target = event.target as HTMLInputElement;
@@ -258,19 +216,22 @@ importControl.addEventListener("change", async (event) => {
     beginBusy();
     try {
       const next = await parsePacket(raw, sha256);
-      requireValue(ticket === generation && previous === packet, "Session changed; import again");
-      if (isDirty()) {
+      requireValue(
+        ticket === store.ticket() && previous === store.get(),
+        "Session changed; import again",
+      );
+      if (store.isDirty()) {
         pendingNativeImport = { next, previous, ticket };
         importConfirmation.hidden = false;
         setStatus(false, "Unsaved packet work is kept until you confirm replacement.");
       } else {
-        usePacket(next, "Imported packet. Export to keep changes.");
+        usePacket(next, "Imported packet. Export to keep changes.", ticket);
       }
     } finally {
       endBusy();
     }
   } catch (error) {
-    if (ticket === generation)
+    if (ticket === store.ticket())
       setStatus(false, `Import failed; current work kept: ${message(error)}`);
   } finally {
     (event.target as HTMLInputElement).value = "";
@@ -280,11 +241,10 @@ element<HTMLButtonElement>("import-replace").addEventListener("click", () => {
   const pending = pendingNativeImport;
   if (!pending) return;
   clearImportConfirmation();
-  if (pending.ticket !== generation || pending.previous !== packet) {
+  if (pending.ticket !== store.ticket() || pending.previous !== store.get()) {
     setStatus(false, "Session changed; import the packet again.");
     return;
   }
-  generation++;
   usePacket(pending.next, "Imported packet. Export to keep changes.");
 });
 element<HTMLButtonElement>("import-keep").addEventListener("click", () => {
@@ -295,7 +255,7 @@ element<HTMLButtonElement>("import-keep").addEventListener("click", () => {
 function exampleLoader(id: string, data: unknown, note: string): void {
   const control = element<HTMLButtonElement>(id);
   control.addEventListener("click", () => {
-    if (isDirty() && confirmExampleUse !== id) {
+    if (store.isDirty() && confirmExampleUse !== id) {
       confirmExampleUse = id;
       setStatus(
         false,
@@ -304,9 +264,9 @@ function exampleLoader(id: string, data: unknown, note: string): void {
       return;
     }
     confirmExampleUse = "";
-    const ticket = ++generation;
+    const ticket = store.beginOperation();
     void importText(JSON.stringify(data), ticket, note).catch((error) => {
-      if (ticket === generation) setStatus(false, `Example failed: ${message(error)}`);
+      if (ticket === store.ticket()) setStatus(false, `Example failed: ${message(error)}`);
     });
   });
 }
@@ -326,15 +286,15 @@ citationControl.addEventListener("change", showSource);
 startControl.addEventListener("input", showExcerpt);
 endControl.addEventListener("input", showExcerpt);
 element("selection").addEventListener("click", () => {
-  if (!packet || !citationControl.value) return;
+  if (!store.get() || !citationControl.value) return;
   startControl.value = String(sourceOffset(source().text, sourceControl.selectionStart));
   endControl.value = String(sourceOffset(source().text, sourceControl.selectionEnd));
   showExcerpt();
 });
 element<HTMLFormElement>("review-form").addEventListener("submit", async (event) => {
   event.preventDefault();
-  const previous = packet,
-    ticket = generation;
+  const previous = store.get(),
+    ticket = store.ticket();
   try {
     requireValue(!!previous, "Import a packet first");
     const selected = source();
@@ -352,11 +312,11 @@ element<HTMLFormElement>("review-form").addEventListener("submit", async (event)
       reviewer: element<HTMLInputElement>("reviewer").value,
     };
     const next = await parsePacket(JSON.stringify(appendReview(previous, review)), sha256);
-    requireValue(ticket === generation && previous === packet, "Session changed; save again");
-    packet = next;
-    clearImportConfirmation();
-    confirmExampleUse = "";
-    confirmBuilderUse = false;
+    requireValue(
+      ticket === store.ticket() && previous === store.get(),
+      "Session changed; save again",
+    );
+    store.set(next, ticket);
     showHistory();
     setStatus(true, "Saved review in memory. Export to keep it.");
     persistDraft();
@@ -373,6 +333,7 @@ function download(raw: string, name: string, type = "application/json"): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 element("export").addEventListener("click", () => {
+  const packet = store.get();
   if (!packet) {
     setStatus(false, "Import a packet first");
     return;
@@ -383,10 +344,11 @@ element("export").addEventListener("click", () => {
     return;
   }
   download(raw, "claim-review.json");
-  lastExport = raw;
+  store.markExported(raw);
   setStatus(true, "Export requested. Confirm your browser saved the file.");
 });
 element("export-w3c").addEventListener("click", () => {
+  const packet = store.get();
   try {
     requireValue(!!packet, "Import a packet first");
     download(
@@ -404,7 +366,7 @@ element("export-w3c").addEventListener("click", () => {
 });
 draftSave.addEventListener("change", () => {
   if (draftSave.checked) {
-    if (!saveDraft(packet)) {
+    if (!saveDraft(store.get())) {
       draftSave.checked = false;
       setStatus(false, "Device draft storage unavailable; work kept in memory.");
     } else setStatus(true, "Device draft saving enabled. Export to keep a portable copy.");
@@ -421,13 +383,13 @@ element("draft-restore").addEventListener("click", () => {
     setStatus(false, "No saved draft on this device; current work kept.");
     return;
   }
-  if (isDirty()) {
+  if (store.isDirty()) {
     setStatus(false, "Export current work before restoring a draft.");
     return;
   }
-  const ticket = ++generation;
+  const ticket = store.beginOperation();
   void importText(saved.raw, ticket).catch((error) => {
-    if (ticket === generation)
+    if (ticket === store.ticket())
       setStatus(false, `Draft restore failed; current work kept: ${message(error)}`);
   });
 });
@@ -442,7 +404,7 @@ element("draft-clear").addEventListener("click", () => {
   );
 });
 globalThis.addEventListener("beforeunload", (event) => {
-  if (isDirty()) event.preventDefault();
+  if (store.isDirty()) event.preventDefault();
 });
 
 // Packet builder: creation-only mode alongside import. All validation flows through
@@ -568,51 +530,51 @@ async function builderPacket(): Promise<Packet> {
   );
 }
 async function applyBuilderPacket(): Promise<void> {
-  const ticket = generation;
+  const ticket = store.ticket();
   beginBusy();
   try {
     const next = await builderPacket();
-    if (ticket !== generation) {
-      setBusyStatus(false, "Session changed while building; packet not applied.");
+    if (ticket !== store.ticket()) {
+      setBuilderStatus(false, "Session changed while building; packet not applied.");
       return;
     }
-    generation++;
     usePacket(next, "Built packet in memory. Save reviews, then export to keep them.");
-    setBusyStatus(true, "Packet ready in the review form.");
+    setBuilderStatus(true, "Packet ready in the review form.");
   } catch (error) {
-    setBusyStatus(false, message(error));
+    setBuilderStatus(false, message(error));
     return;
   } finally {
     endBusy();
   }
 }
 element("builder-use").addEventListener("click", () => {
-  if (isDirty() && !confirmBuilderUse) {
+  if (store.isDirty() && !confirmBuilderUse) {
     confirmBuilderUse = true;
-    setBusyStatus(false, "Unsaved reviews will be replaced. Click Use packet again to confirm.");
+    setBuilderStatus(false, "Unsaved reviews will be replaced. Click Use packet again to confirm.");
     return;
   }
   confirmBuilderUse = false;
   void applyBuilderPacket();
 });
 element("builder-download").addEventListener("click", () => {
-  const ticket = generation;
+  const ticket = store.ticket();
   beginBusy();
   void builderPacket()
     .then((next) => {
-      if (ticket !== generation) {
-        setBusyStatus(false, "Session changed while building; file not used.");
+      if (ticket !== store.ticket()) {
+        setBuilderStatus(false, "Session changed while building; file not used.");
         return;
       }
       download(JSON.stringify(next), "packet.json");
-      setBusyStatus(true, "Packet file download requested.");
+      setBuilderStatus(true, "Packet file download requested.");
     })
-    .catch((error) => setBusyStatus(false, message(error)))
+    .catch((error) => setBuilderStatus(false, message(error)))
     .finally(() => endBusy());
 });
 
 function moveQueue(direction: number): void {
-  if (!packet || busyCount) return;
+  const packet = store.get();
+  if (!packet || isBusy()) return;
   const pairs = packet.claims.flatMap((c) =>
     c.citation_ids.map((s) => ({ claim: c.id, source: s })),
   );
@@ -625,7 +587,7 @@ function moveQueue(direction: number): void {
       (r) =>
         r.claim_id === next.claim &&
         r.source_id === next.source &&
-        reviewState(packet!, r) === "valid",
+        reviewState(packet, r) === "valid",
     );
     if (direction < 0 || !reviewed) {
       claimControl.value = next.claim;
@@ -651,13 +613,13 @@ for (const kind of ["trace", "merge"] as const) {
   control.addEventListener("change", () => {
     const file = control.files?.[0];
     if (!file) return;
-    if (kind === "trace" && isDirty()) {
+    if (kind === "trace" && store.isDirty()) {
       setStatus(false, "Export current work before importing a trace.");
       control.value = "";
       return;
     }
-    const ticket = ++generation;
-    const previous = packet;
+    const ticket = store.beginOperation();
+    const previous = store.get();
     beginBusy();
     void (async () => {
       requireValue(file.size <= 5 * 1024 * 1024, "Import exceeds 5 MiB");
@@ -674,16 +636,20 @@ for (const kind of ["trace", "merge"] as const) {
         next = mergePackets(previous, await parsePacket(raw, sha256));
         next = await parsePacket(JSON.stringify(next), sha256);
       }
-      requireValue(ticket === generation && previous === packet, "Session changed; import again");
+      requireValue(
+        ticket === store.ticket() && previous === store.get(),
+        "Session changed; import again",
+      );
       usePacket(
         next,
         kind === "trace"
           ? "Trace imported. Claims are unreviewed; supplied documents are candidate citations, actual use unverified."
           : "Reviewer histories merged. Export to preserve them.",
+        ticket,
       );
     })()
       .catch((error) => {
-        if (ticket === generation)
+        if (ticket === store.ticket())
           setStatus(false, `Import failed; current work kept: ${message(error)}`);
       })
       .finally(() => {
@@ -694,6 +660,7 @@ for (const kind of ["trace", "merge"] as const) {
 }
 for (const format of ["ais", "alce", "csv"] as const)
   element(`export-${format}`).addEventListener("click", () => {
+    const packet = store.get();
     if (!packet) {
       setStatus(false, "Import a packet first");
       return;
