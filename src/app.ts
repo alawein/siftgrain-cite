@@ -52,10 +52,12 @@ async function importText(
   ticket: number,
   note = "Imported packet. Export to keep changes.",
 ): Promise<void> {
+  const previous = store.get();
   beginBusy();
   try {
     const next = await parsePacket(raw, sha256);
     if (ticket !== store.ticket()) return;
+    requireValue(previous === store.get(), "Session changed; import again");
     usePacket(next, note, ticket);
   } finally {
     endBusy();

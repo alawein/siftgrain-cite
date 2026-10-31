@@ -575,6 +575,35 @@ test("a review saved during a native file read preserves the review and reports 
   await expect(page.locator("#history")).toContainText("Saved while the file was being read.");
 });
 
+test("a review saved while an example is loading survives the older replacement", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await importPacket(page);
+  const example = page.getByRole("button", { name: "Load synthetic example", exact: true });
+  await example.click();
+  await expect(page.locator("#status")).toContainText("again to confirm");
+  const release = await example.evaluateHandle(
+    (button) =>
+      new Promise<() => void>((started) => {
+        const original = SubtleCrypto.prototype.digest;
+        SubtleCrypto.prototype.digest = async function (...args) {
+          SubtleCrypto.prototype.digest = original;
+          await new Promise<void>((resume) => started(resume));
+          return original.apply(this, args);
+        };
+        (button as HTMLButtonElement).click();
+      }),
+  );
+  await saveFirstReview(page, "Saved during example import.");
+  await release.evaluate((resume) => resume());
+  await expect(page.locator("#status")).toHaveAttribute("aria-busy", "false");
+  await expect(page.locator("#history")).toContainText("Saved during example import.");
+  await expect(page.getByRole("alert")).toContainText(
+    "Example failed: Session changed; import again",
+  );
+});
+
 test("pending native replacement expires when a new review changes the session", async ({
   page,
 }) => {
