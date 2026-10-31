@@ -1,17 +1,15 @@
 import { element } from "./dom.js";
 
-const status = element("status");
-const builderStatus = element("builder-status");
 let busyCount = 0;
-const busyControls = [
-  element<HTMLInputElement>("import"),
-  element<HTMLButtonElement>("example"),
-  element<HTMLButtonElement>("acceptance-example"),
-  element<HTMLButtonElement>("acceptance-worked"),
-  element<HTMLButtonElement>("export"),
-  element<HTMLButtonElement>("export-w3c"),
-  element<HTMLButtonElement>("draft-restore"),
-  element<HTMLButtonElement>("builder-toggle"),
+const busyControlIds = [
+  "import",
+  "example",
+  "acceptance-example",
+  "acceptance-worked",
+  "export",
+  "export-w3c",
+  "draft-restore",
+  "builder-toggle",
 ];
 
 function showOnStatus(node: HTMLElement, ok: boolean, text: string): void {
@@ -21,14 +19,14 @@ function showOnStatus(node: HTMLElement, ok: boolean, text: string): void {
   if (!ok) node.focus();
 }
 export function setStatus(ok: boolean, text: string): void {
-  showOnStatus(status, ok, text);
+  showOnStatus(element("status"), ok, text);
 }
 export function setBuilderStatus(ok: boolean, text: string): void {
-  showOnStatus(builderStatus, ok, text);
+  showOnStatus(element("builder-status"), ok, text);
 }
 function setBusy(busy: boolean): void {
-  status.setAttribute("aria-busy", String(busy));
-  for (const control of busyControls) control.toggleAttribute("disabled", busy);
+  element("status").setAttribute("aria-busy", String(busy));
+  for (const id of busyControlIds) element(id).toggleAttribute("disabled", busy);
 }
 export function beginBusy(): void {
   busyCount++;
