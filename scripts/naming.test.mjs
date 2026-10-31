@@ -165,17 +165,36 @@ function destinations(markdown) {
 }
 
 function anchors(markdown) {
-  const text = withoutCode(markdown);
-  const ids = new Set(
-    [...text.matchAll(/\b(?:id|name)=["']([^"']+)["']/g)].map((match) => match[1]),
+  const text = withoutCode(markdown).replace(
+    /\\.|(`+)[\s\S]*?\1(?!`)|<!--[\s\S]*?(?:-->|$)/g,
+    (token) => (token.startsWith("<!--") ? "" : token),
   );
+  const ids = new Set();
+  function visibleText(value) {
+    return value.replace(
+      /\\([\\`*{}[\]()#+\-.!_<>])|(`+)([\s\S]*?)\2(?!`)|<[a-z][a-z\d:-]*\b(?:[^<>"']|"[^"]*"|'[^']*')*>/gi,
+      (token, escaped, ticks, code) => {
+        if (escaped) return escaped;
+        if (ticks) return code;
+        for (const attribute of token.matchAll(
+          /\s+([^\s"'<>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g,
+        )) {
+          if (/^(?:id|name)$/i.test(attribute[1])) {
+            const id = attribute[2] ?? attribute[3] ?? attribute[4];
+            if (id) ids.add(id);
+          }
+        }
+        return "";
+      },
+    );
+  }
+  visibleText(text);
   for (const match of text.matchAll(
     /^(?: {0,3}#{1,6}\s+(.+?)\s*#*\s*$|([^\n]+)\n {0,3}(?:=+|-+)\s*$)/gm,
   )) {
-    const slug = (match[1] ?? match[2])
+    const slug = visibleText(match[1] ?? match[2])
       .toLowerCase()
       .replace(/!?\[([^\]]+)\]\([^)]*\)/g, "$1")
-      .replace(/<[^>]*>/g, "")
       .replace(/[^\p{L}\p{M}\p{N}_\-\s]/gu, "")
       .replace(/\s/g, "-");
     let id = slug;
@@ -278,4 +297,35 @@ test("relative links reject missing files, retained disk paths, wrong case and m
     ["docs/guide.md", "# Guide"],
   ]);
   expect(linkIssues(fixture, [...fixture.keys(), "SECURITY_SETTINGS.md"])).toHaveLength(4);
+});
+
+test.each([
+  ["inline code", '`<a id="ghost"></a>`'],
+  ["HTML comment", '<!-- <a id="ghost"></a> -->'],
+  ["escaped literal tag", '\\<a id="ghost"></a>'],
+  ["data attribute", '<a data-id="ghost"></a>'],
+  ["plain text", 'id="ghost"'],
+  ["quoted attribute text", "<a title='id=\"ghost\"'></a>"],
+])("relative fragments reject phantom anchors in %s", (_kind, body) => {
+  const fixture = new Map([
+    ["README.md", "[jump](guide.md#ghost)"],
+    ["guide.md", body],
+  ]);
+  expect(linkIssues(fixture, [...fixture.keys()])).toEqual([
+    "README.md: missing anchor guide.md#ghost",
+  ]);
+});
+
+test("rendered HTML anchors and visible inline-code heading text remain valid", () => {
+  const fixture = new Map([
+    ["README.md", "[id](guide.md#real) [name](guide.md#named) [code](guide.md#use-review-now)"],
+    ["guide.md", "<a id = \"real\"></a>\n<a name='named'></a>\n# Use `review` now"],
+  ]);
+  expect(linkIssues(fixture, [...fixture.keys()])).toEqual([]);
+});
+
+test("HTML-looking inline-code heading text stays visible in its slug", () => {
+  expect(anchors("# Use `<code>` now\n# `<!--code-->`")).toEqual(
+    new Set(["use-code-now", "--code--"]),
+  );
 });
