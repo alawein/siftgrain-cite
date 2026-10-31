@@ -17,3 +17,7 @@ benchmarks/artifacts
 src/generated/packet-validator.js
 
 benchmarks/v1/
+
+/docs/shared-history.json
+/docs/recent-history.json
+/docs/dev-tool-versions.json
