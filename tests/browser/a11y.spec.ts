@@ -19,6 +19,7 @@ for (const theme of ["dark", "light"]) {
     await page.goto("./");
     await page.getByLabel("Appearance").selectOption(theme);
     await page.reload();
+    await expect(page.locator("html")).toHaveCSS("color-scheme", theme);
     for (const selector of [
       ".skip",
       "#theme",

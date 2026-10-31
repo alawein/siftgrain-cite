@@ -4,6 +4,9 @@
 :root {
   color-scheme: light;
 }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
 body {
   margin: 0;
   background: #f5f4ef;
