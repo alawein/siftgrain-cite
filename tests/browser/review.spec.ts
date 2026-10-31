@@ -7,6 +7,46 @@ import { createHash } from "node:crypto";
 const expected = JSON.parse(await readFile("examples/expected.json", "utf8"));
 const input = await readFile("examples/packet.json", "utf8");
 
+test("one look keeps dark default, light persistence and pause controls", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("./");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator("html")).not.toHaveAttribute("data-vibe");
+  await expect(page.getByLabel("Motion vibe")).toHaveCount(0);
+  await expect(page.locator("#hero-canvas")).toHaveCount(0);
+  await page.getByLabel("Appearance").selectOption("light");
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(244, 242, 247)");
+  await page.reload();
+  await expect(page.getByLabel("Appearance")).toHaveValue("light");
+  const pause = page.getByRole("button", { name: "Pause motion" });
+  await pause.click();
+  await expect(pause).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("html")).toHaveAttribute("data-paused", "true");
+  await expect(pause).toHaveCSS("transition-duration", "0s");
+  await pause.click();
+  await expect(pause).toHaveAttribute("aria-pressed", "false");
+  await page.getByLabel("Appearance").selectOption("dark");
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(16, 12, 28)");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("siftgrain-viewer")!))).toEqual({
+    theme: "dark",
+  });
+});
+
+test("legacy look preference retains light without restoring a look", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    localStorage.setItem("siftgrain-viewer", JSON.stringify({ theme: "light", vibe: "pixel" }));
+  });
+  await page.goto("./");
+  await expect(page.getByLabel("Appearance")).toHaveValue("light");
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(244, 242, 247)");
+  await expect(page.locator("html")).not.toHaveAttribute("data-vibe");
+  await page.getByRole("button", { name: "Load synthetic example", exact: true }).click();
+  await expect(page.locator("#status")).toContainText("Imported");
+  expect(errors).toEqual([]);
+});
+
 const acceptanceCases = [
   {
     id: "refund-confirmed",

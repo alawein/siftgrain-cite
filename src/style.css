@@ -289,17 +289,6 @@ h1 {
   background: var(--surface);
   overflow: hidden;
 }
-#hero-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  opacity: 0.3;
-}
-.hero > *:not(canvas) {
-  position: relative;
-}
 .suite,
 .eyebrow {
   font-family: var(--font-mono);
@@ -389,20 +378,6 @@ a {
 #source-panel:focus-within {
   outline: 2px solid var(--focus);
   outline-offset: 3px;
-}
-[data-vibe="cartoon"] .hero {
-  box-shadow: 6px 6px 0 var(--line);
-}
-[data-vibe="pixel"] .hero {
-  background-image: radial-gradient(var(--line) 0.5px, transparent 0.5px);
-  background-size: 6px 6px;
-}
-[data-vibe="lab"] {
-  font-size: 14px;
-}
-[data-vibe="lab"] h1 {
-  font-family: var(--font-mono);
-  font-size: 2rem;
 }
 @keyframes stale-arrive {
   from {

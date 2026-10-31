@@ -12,7 +12,7 @@ External ALCE: dev9claims/14citation items, test4claims/6items. All 20 original 
 
 ## Scripted UI task
 
-Four real offline workflows per vibe,16 scripted saves total,0 save-status errors. Supplied rationale explicitly says synthetic scripted task. Throughput is automation speed, not human review productivity.
+These historical measurements use the earlier four-look build; only Calm remains available. Four real offline workflows per vibe,16 scripted saves total,0 save-status errors. Supplied rationale explicitly says synthetic scripted task. Throughput is automation speed, not human review productivity.
 
 | Vibe | Local file LCP ms | Max observed event ms | Scripted reviews/min | Post-workflow mean RAF fps | Frame p95 ms |
 | --- | ---: | ---: | ---: | ---: | ---: |

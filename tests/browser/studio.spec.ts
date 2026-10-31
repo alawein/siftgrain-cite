@@ -113,31 +113,31 @@ test("trace BOM and valid Unicode remain intact through trace import and reviewe
   expect(after.reviews).toEqual([...before.reviews, incoming.reviews[0]]);
 });
 
-test("completion celebration occurs once rather than after every saved revision", async ({
+test("completed queue and saved revisions stay usable without header decoration", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
-  await page.getByLabel("Motion vibe").selectOption("cartoon");
-  await page.evaluate(() => {
-    const hero = document.querySelector<HTMLElement>(".hero")!;
-    const animate = hero.animate.bind(hero);
-    hero.animate = (...args: Parameters<typeof animate>) => {
-      hero.dataset.celebrations = String(Number(hero.dataset.celebrations ?? 0) + 1);
-      return animate(...args);
-    };
-  });
   await page.getByText("Synthetic worked judgments", { exact: true }).click();
   await page.getByRole("button", { name: "Load synthetic worked judgments", exact: true }).click();
-  await expect(page.locator(".hero")).toHaveAttribute("data-celebrations", "1");
+  await expect(page.locator("#queue-state")).toContainText(
+    "4 of 4 citation pairs have current reviews",
+  );
+  await expect(page.locator("#hero-canvas")).toHaveCount(0);
+  expect(await page.locator(".hero").evaluate((hero) => hero.getAnimations().length)).toBe(0);
   await page.getByLabel("Span start").fill("0");
   await page.getByLabel("Span end").fill("10");
   await page.getByLabel("Reviewer label").fill("Revision exercise");
   await page.getByLabel("Rationale").fill("Changed rationale, same completed review queue.");
   await page.getByRole("button", { name: "Save review", exact: true }).click();
   await expect(page.locator("#status")).toContainText("Saved");
-  await expect(page.locator(".hero")).toHaveAttribute("data-celebrations", "1");
+  await expect(page.locator("#queue-state")).toContainText(
+    "4 of 4 citation pairs have current reviews",
+  );
+  await expect(page.locator("#history p")).toHaveCount(5);
+  await expect(page.locator("#history p").last()).toContainText("Changed rationale");
 });
+
 test("theme storage failure and reduced motion preserve offline queue and label exports", async ({
   page,
 }) => {
@@ -152,8 +152,11 @@ test("theme storage failure and reduced motion preserve offline queue and label 
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.getByLabel("Appearance").selectOption("light");
-  await page.getByLabel("Motion vibe").selectOption("pixel");
-  await expect(page.locator("html")).toHaveAttribute("data-vibe", "pixel");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.getByRole("button", { name: "Pause motion" })).toHaveCSS(
+    "transition-duration",
+    "0s",
+  );
   await page.getByRole("button", { name: "Load acceptance example", exact: true }).click();
   await page.getByRole("button", { name: "Next unreviewed" }).click();
   await expect(page.locator("#claim")).not.toHaveValue("c1");
@@ -163,21 +166,19 @@ test("theme storage failure and reduced motion preserve offline queue and label 
   expect((await downloaded).suggestedFilename()).toBe("claim-review.csv");
 });
 import AxeBuilder from "@axe-core/playwright";
-for (const theme of ["dark", "light"])
-  for (const vibe of ["cartoon", "calm", "pixel", "lab"]) {
-    test(`axe WCAG22 AA ${theme}/${vibe} offline reduced motion`, async ({ page }) => {
-      await page.emulateMedia({ reducedMotion: "reduce" });
-      await page.goto("/");
-      await page.route("**/*", (r) => r.abort());
-      await page.getByLabel("Appearance").selectOption(theme);
-      await page.getByLabel("Motion vibe").selectOption(vibe);
-      await page.getByRole("button", { name: "Load acceptance example", exact: true }).click();
-      const result = await new AxeBuilder({ page })
-        .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
-        .analyze();
-      expect(result.violations).toEqual([]);
-    });
-  }
+for (const theme of ["dark", "light"]) {
+  test(`axe WCAG22 AA ${theme} offline reduced motion`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    await page.route("**/*", (r) => r.abort());
+    await page.getByLabel("Appearance").selectOption(theme);
+    await page.getByRole("button", { name: "Load acceptance example", exact: true }).click();
+    const result = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+      .analyze();
+    expect(result.violations).toEqual([]);
+  });
+}
 test("trace import and reviewer merge reject invalid replacements atomically", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("Import RAG trace JSON or JSONL").setInputFiles({

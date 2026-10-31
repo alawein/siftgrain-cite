@@ -11,13 +11,11 @@ for checking requested outcomes against supplied observations. The npm package i
 
 Import local RAG trace JSON/JSONL, triage with Alt+J / Alt+K, merge reviewer packets, and compare Cohen/Fleiss kappa or nominal Krippendorff alpha. Labels remain self-reported. The native packet preserves all history; CSV and AIS/ALCE analysis labels have the bounded [adapter contract](docs/adapters.md).
 
-Dark is the default; Appearance offers a light theme. Calm, Cartoon, Pixel and Lab change density and motion. Preferences store only those choices with guarded access, independently of opt-in packet drafts.
+Dark is the default; Appearance offers a light theme. Calm is the single look; **Pause motion** stops motion. Guarded preferences store only the theme, independently of opt-in packet drafts.
 
-| Cartoon | Calm | Pixel | Lab |
-| --- | --- | --- | --- |
-| ![Recorded Cartoon workflow](docs/demos/cartoon.gif) | ![Recorded Calm workflow](docs/demos/calm.gif) | ![Recorded Pixel workflow](docs/demos/pixel.gif) | ![Recorded Lab workflow](docs/demos/lab.gif) |
+![Recorded Calm workflow](docs/demos/calm.gif)
 
-These are recordings from the real offline app using explicitly synthetic scripted judgments. They do not represent human annotations.
+This recording shows an earlier build with a look selector that has since been removed. It uses explicitly synthetic scripted judgments, not human annotations.
 
 More: [benchmark results](docs/results.md), [performance](docs/performance.md), [research](docs/research.md), and [migration](docs/migration.md). To build the local benchmark packets, install Python and Node, run `python benchmarks/fetch.py` once (it needs network access), then `npm run bench` (`make bench` is an alias). The run generates dev/test packets, separate answer keys and a downloadable ZIP. External text remains fetch-only.
 

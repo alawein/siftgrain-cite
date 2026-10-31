@@ -11,7 +11,8 @@ import console from "node:console";
 await mkdir("benchmarks/artifacts/ui", { recursive: true });
 const browser = await chromium.launch();
 const reports = [];
-for (const vibe of ["cartoon", "calm", "pixel", "lab"]) {
+{
+  const vibe = "calm";
   const context = await browser.newContext({
     viewport: { width: 1280, height: 900 },
     recordVideo: { dir: "benchmarks/artifacts/ui", size: { width: 1280, height: 900 } },
@@ -37,7 +38,6 @@ for (const vibe of ["cartoon", "calm", "pixel", "lab"]) {
   });
   await page.route(/^https?:/, (r) => r.abort());
   await page.goto(pathToFileURL(resolve("dist/index.html")).href);
-  await page.getByLabel("Motion vibe").selectOption(vibe);
   await page.getByRole("button", { name: "Load acceptance example", exact: true }).click();
   const start = performance.now();
   let errors = 0;

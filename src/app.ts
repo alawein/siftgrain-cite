@@ -15,7 +15,7 @@ import acceptanceReviewed from "../examples/acceptance-reviewed.json";
 import { webAnnotations } from "./annotation.js";
 import { importTrace, labelExport, csvExport } from "./adapters.js";
 import { agreement, mergePackets } from "./coordination.js";
-import { setupViewer, celebrate } from "./viewer.js";
+import { setupViewer } from "./viewer.js";
 import { saveDraft, readDraft, clearDraft } from "./draft.js";
 
 setupViewer();
@@ -34,8 +34,7 @@ let packet: Packet | null = null,
   busyCount = 0,
   confirmBuilderUse = false,
   confirmExampleUse = "",
-  pendingNativeImport: { next: Packet; previous: Packet | null; ticket: number } | null = null,
-  queueWasComplete = false;
+  pendingNativeImport: { next: Packet; previous: Packet | null; ticket: number } | null = null;
 const claimControl = element<HTMLSelectElement>("claim");
 const citationControl = element<HTMLSelectElement>("citation");
 const sourceControl = element<HTMLTextAreaElement>("source-text");
@@ -163,9 +162,6 @@ function showHistory(): void {
     : 0;
   element("queue-state").textContent =
     `${done} of ${total} citation pairs have current reviews. This is completion, not accuracy.`;
-  const complete = total > 0 && done === total;
-  if (complete && !queueWasComplete) celebrate();
-  queueWasComplete = complete;
   const latest = new Set(packet ? latestReviews(packet).map((row) => row.id) : []);
   history.replaceChildren(
     ...(packet?.reviews ?? []).map((review) => {
@@ -216,7 +212,6 @@ function claimLabel(id: string, text: string): string {
 function usePacket(next: Packet, note: string): void {
   clearImportConfirmation();
   packet = next;
-  queueWasComplete = false;
   confirmExampleUse = "";
   confirmBuilderUse = false;
   options(
