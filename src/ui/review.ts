@@ -224,6 +224,7 @@ export function mountReview(
         citationControl.value = next.source;
         showSource();
         claimControl.focus();
+        setStatus(true, `Queue item ${pairs.indexOf(next) + 1} of ${pairs.length} selected.`);
         return;
       }
     }
