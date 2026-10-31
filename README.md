@@ -23,7 +23,9 @@ Import source text, select a passage, and record whether it supports, partly
 supports, contradicts, or cannot verify a claim. Export the packet to preserve
 your review history. No account, model, or server.
 
-![Siftgrain Cite packet builder with a synthetic example](docs/screenshots/app.png)
+![Siftgrain Cite reviewing a synthetic acceptance example](docs/screenshots/app.png)
+
+Screenshot inputs are scripted and synthetic; all four claims are unreviewed.
 
 ## Use
 
