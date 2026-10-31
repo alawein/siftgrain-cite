@@ -19,7 +19,7 @@ Dark is the default; Appearance offers a light theme. Calm, Cartoon, Pixel and L
 
 These are recordings from the real offline app using explicitly synthetic scripted judgments. They do not represent human annotations.
 
-More: [benchmark results](RESULTS.md), [performance](PERF.md), [research](RESEARCH.md), and [migration](MIGRATION.md). To build the local benchmark packets, install Python and Node, run `python benchmarks/fetch.py` once (it needs network access), then `npm run bench` (`make bench` is an alias). The run generates dev/test packets, separate answer keys and a downloadable ZIP. External text remains fetch-only.
+More: [benchmark results](docs/results.md), [performance](docs/performance.md), [research](docs/research.md), and [migration](docs/migration.md). To build the local benchmark packets, install Python and Node, run `python benchmarks/fetch.py` once (it needs network access), then `npm run bench` (`make bench` is an alias). The run generates dev/test packets, separate answer keys and a downloadable ZIP. External text remains fetch-only.
 
 ![Evidence review](assets/label-purpose.svg)
 ![TypeScript](assets/label-stack.svg)

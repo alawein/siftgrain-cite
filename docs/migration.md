@@ -8,10 +8,10 @@ migrate to schema2 without changing source text; use native Export packet to
 preserve enriched history. W3C and CSV/label exports do not replace the resumable
 packet.
 
-After a repository rename, verify the current README/badges, package repository
-metadata and release-workflow repository guard. Read back the native npm trusted
-publisher binding against `alawein/siftgrain-cite`; local metadata does not prove
-that registry configuration changed.
+The repository was renamed to `alawein/siftgrain-cite`. Package metadata and the
+release-workflow repository guard use that repository name. Read back the native
+npm trusted publisher binding against `alawein/siftgrain-cite`; local metadata
+does not prove that registry configuration changed.
 
 Preferences use siftgrain-viewer (appearance/vibe only). Drafts retain claim-review.draft.v1 and require explicit opt-in. No automatic restore. Merge right-hand novel history takes append precedence, with labels self-reported. Export both original reviewer packets before merging if you need independently frozen inputs.
 
@@ -19,7 +19,7 @@ Preferences use siftgrain-viewer (appearance/vibe only). Drafts retain claim-rev
 
 The GitHub repository is now `alawein/siftgrain-cite`; keep the npm package name `claim-review` and published schema identifiers for compatibility. Preserve all existing tags and feature branches.
 
-- Transfer only after exact destination approval: GitHub repository Settings > General > Danger Zone > Transfer ownership > destination kohyr, retaining redirects and verifying required checks and Pages afterward. No transfer command executed.
+- Any future repository transfer requires exact destination approval, followed by verification of required checks and Pages. No transfer command executed.
 - Dataset upload, only after rights and named destination approval: `hf upload alawein/siftgrain-cite benchmarks/artifacts --repo-type dataset`. Current local mixed-rights archive must not be bulk uploaded without preserving ALCE MIT notice and Wikipedia attribution/share-alike obligations; synthetic-only publication is the safer scoped choice.
 - New release after a named version is approved: `gh release create <approved-version> benchmarks/artifacts/siftgrain-cite-v1.zip --repo alawein/siftgrain-cite --target <reviewed-sha> --notes-file <reviewed-notes>`. Placeholders are intentionally unresolved consequential decisions, not executable authorization.
 
