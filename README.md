@@ -1,5 +1,7 @@
 # Siftgrain Cite
 
+![Siftgrain Cite mark](brand/logo.svg) ![Siftgrain Cite wordmark](brand/wordmark.svg)
+
 Offline browser tool for researchers and reviewers who check claims against exact source passages and export their reasoning.
 
 ![Siftgrain Cite with a synthetic acceptance packet](docs/screenshots/app.png)

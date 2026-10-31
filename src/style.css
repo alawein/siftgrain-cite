@@ -294,6 +294,11 @@ h1 {
   font-family: var(--font-mono);
   letter-spacing: 0.1em;
 }
+#brand-mark {
+  display: block;
+  width: 4rem;
+  height: 4rem;
+}
 nav {
   display: flex;
   flex-wrap: wrap;

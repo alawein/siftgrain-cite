@@ -7,6 +7,17 @@ import { createHash } from "node:crypto";
 const expected = JSON.parse(await readFile("examples/expected.json", "utf8"));
 const input = await readFile("examples/packet.json", "utf8");
 
+test("header shows the Siftgrain Cite mark and unchanged tagline", async ({ page }) => {
+  await page.goto("./");
+  const mark = page.locator("#brand-mark");
+  await expect(mark).toBeVisible();
+  await expect(mark).toHaveAttribute("role", "img");
+  await expect(mark).toHaveAttribute("aria-label", "Siftgrain Cite");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Every judgment needs a passage.",
+  );
+});
+
 test("one look keeps dark default, light persistence and pause controls", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("./");
