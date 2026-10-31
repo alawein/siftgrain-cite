@@ -60,4 +60,15 @@
 
 ## Unreleased
 
-Siftgrain Cite display identity, shared dark/light tokens and four runtime vibes, guarded preferences and bounded WebGL2 completion. Add common trace JSON/JSONL import, keyboard queue, atomic reviewer merge and nominal agreement metrics, analysis label/CSV exports, standalone performance budget and accessibility checks. Native version 2 and v0.2 migration remain compatible. Benchmarks add Unicode/staleness integrity and checksum-pinned external ALCE label preservation without new semantic accuracy claims.
+- Keep one default look with light and dark themes, native controls that follow the
+  selected theme, and a skip link that remains in keyboard order. Queue navigation
+  announces the active claim through the polite status region.
+- Preserve reviews saved during example and draft imports, and generate review IDs
+  that avoid collisions when separate copies of a packet are merged.
+- Split the application into a small bootstrap, pure core modules, and focused UI
+  modules. Consolidate design tokens and replace the release script chain with a
+  package check; stop tracking obsolete process files and decorative assets.
+- Add a user guide, shorter README, keyboard and accessibility checks, generated
+  validator drift checks, and checks for display naming, links, and house voice.
+  Native version 2, UTF-16 spans, self-reported reviewer labels, and offline exports
+  remain compatible.
