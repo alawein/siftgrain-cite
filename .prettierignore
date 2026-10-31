@@ -10,7 +10,8 @@ release-assets
 studies/ais-pilot/downloads
 studies/ais-pilot/collected
 
-design-tokens/tokens.css
+/design-tokens/
+/src/tokens.css
 benchmarks/downloads
 benchmarks/artifacts
 

@@ -18,7 +18,6 @@
     "validate:schema": "node scripts/validate-schema.mjs",
     "prepack": "npm run build",
     "bench": "python benchmarks/prepare.py && node benchmarks/run.mjs",
-    "test:tokens": "node --test design-tokens/tokens.test.mjs",
     "perf:budget": "node scripts/perf-budget.mjs"
   },
   "devDependencies": {

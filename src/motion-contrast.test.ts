@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { readFileSync } from "node:fs";
-const tokens = JSON.parse(readFileSync("design-tokens/tokens.json", "utf8"));
+const tokens = readFileSync("src/tokens.css", "utf8");
 const rgb = (hex: string) =>
   hex
     .slice(1)
@@ -15,8 +15,11 @@ test.each(["dark", "light"])("stale animation-start text retains AA contrast in 
   const css = readFileSync("src/style.css", "utf8");
   const start = css.match(/@keyframes stale-arrive\s*\{\s*from\s*\{([^}]*)\}/)![1];
   const opacity = Number(start.match(/opacity:\s*([0-9.]+)/)?.[1] ?? 1);
-  const ink = rgb(tokens[theme].ink),
-    background = rgb(tokens[theme].surface);
+  const block =
+    theme === "dark" ? /:root\s*\{([^}]+)\}/ : /\[data-appearance="light"\]\s*\{([^}]+)\}/;
+  const declarations = tokens.match(block)![1];
+  const ink = rgb(declarations.match(/--ink:\s*(#[\da-f]{6});/i)![1]),
+    background = rgb(declarations.match(/--surface:\s*(#[\da-f]{6});/i)![1]);
   const composed = ink.map((value, i) => value * opacity + background[i] * (1 - opacity));
   const a = luminance(composed),
     b = luminance(background);
