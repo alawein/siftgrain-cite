@@ -74,6 +74,117 @@ const acceptanceCases = [
   },
 ];
 
+test("independent acceptance copies merge native reviews without changing their IDs", async ({
+  page,
+  browser,
+  baseURL,
+}, info) => {
+  const other = await browser.newPage({ baseURL, acceptDownloads: true });
+  const acceptance = await readFile("examples/acceptance.json", "utf8");
+  const sourceText = JSON.parse(acceptance).sources[0].text;
+  const start = sourceText.indexOf(acceptanceCases[0].span);
+  expect(start).toBeGreaterThanOrEqual(0);
+  const exports = [];
+  try {
+    for (const [index, copy] of [page, other].entries()) {
+      await copy.goto("./");
+      await copy.getByLabel("Import packet").setInputFiles({
+        name: "acceptance.json",
+        mimeType: "application/json",
+        buffer: Buffer.from(acceptance),
+      });
+      await expect(copy.locator("#status")).toContainText("Imported");
+      await copy.getByLabel("Span start").fill(String(start));
+      await copy.getByLabel("Span end").fill(String(start + acceptanceCases[0].span.length));
+      await copy.getByLabel("Verdict").selectOption("supported");
+      await copy.getByLabel("Rationale").fill(acceptanceCases[0].rationale);
+      await copy.getByLabel("Reviewer label").fill(`Synthetic reviewer ${index + 1}`);
+      await copy.getByRole("button", { name: "Save review" }).click();
+      await expect(copy.locator("#status")).toContainText("Saved");
+      const download = copy.waitForEvent("download");
+      await copy.getByRole("button", { name: "Export packet" }).click();
+      const path = info.outputPath(`reviewer-${index + 1}.json`);
+      await (await download).saveAs(path);
+      exports.push({ path, packet: JSON.parse(await readFile(path, "utf8")) });
+    }
+    await page.getByLabel("Import packet").setInputFiles(exports[0].path);
+    await expect(page.locator("#status")).toContainText("Imported");
+    await page.getByLabel("Merge reviewer packet").setInputFiles(exports[1].path);
+    await expect(page.locator("#status")).toContainText("Reviewer histories merged");
+    await expect(page.locator("#history p")).toHaveCount(2);
+    for (const reviewer of ["Synthetic reviewer 1", "Synthetic reviewer 2"])
+      await expect(page.locator("#history")).toContainText(reviewer);
+    const originalReviews = exports.flatMap(({ packet }) => packet.reviews);
+    expect(new Set(originalReviews.map((review) => review.id)).size).toBe(2);
+    const download = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Export packet" }).click();
+    const mergedPath = info.outputPath("merged.json");
+    await (await download).saveAs(mergedPath);
+    const merged = JSON.parse(await readFile(mergedPath, "utf8"));
+    expect(merged.schema_version).toBe(2);
+    expect(merged.reviews).toEqual(originalReviews);
+    expect(merged.reviews.map((review: { reviewer: string }) => review.reviewer)).toEqual([
+      "Synthetic reviewer 1",
+      "Synthetic reviewer 2",
+    ]);
+    await page.getByLabel("Merge reviewer packet").setInputFiles(exports[0].path);
+    await expect(page.locator("#status")).toContainText("Reviewer histories merged");
+    await expect(page.locator("#history p")).toHaveCount(2);
+    const conflict = structuredClone(exports[1].packet);
+    conflict.reviews[0].id = originalReviews[0].id;
+    await page.getByLabel("Merge reviewer packet").setInputFiles({
+      name: "conflicting-existing-id.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(conflict)),
+    });
+    await expect(page.getByRole("alert")).toContainText("review ID collision");
+    await expect(page.locator("#history p")).toHaveCount(2);
+    const preserved = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Export packet" }).click();
+    expect(JSON.parse(await readFile((await (await preserved).path())!, "utf8"))).toEqual(merged);
+  } finally {
+    await other.close();
+  }
+});
+
+test("new review IDs skip occupied UUIDs and preserve imported history", async ({ page }) => {
+  const packet = JSON.parse(await readFile("examples/acceptance-reviewed.json", "utf8"));
+  const occupied = "00000000-0000-4000-8000-000000000001";
+  const fresh = "00000000-0000-4000-8000-000000000002";
+  packet.reviews[0].id = `review-${occupied}`;
+  await page.goto("./");
+  await page.getByLabel("Import packet").setInputFiles({
+    name: "occupied-id.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(packet)),
+  });
+  await expect(page.locator("#status")).toContainText("Imported");
+  const before = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export packet" }).click();
+  const imported = JSON.parse(await readFile((await (await before).path())!, "utf8"));
+  await page.evaluate(
+    ([occupied, fresh]) => {
+      const ids = [occupied, fresh];
+      crypto.randomUUID = () => ids.shift()! as ReturnType<Crypto["randomUUID"]>;
+    },
+    [occupied, fresh],
+  );
+  const start = packet.sources[0].text.indexOf(acceptanceCases[0].span);
+  await page.getByLabel("Span start").fill(String(start));
+  await page.getByLabel("Span end").fill(String(start + acceptanceCases[0].span.length));
+  await page.getByLabel("Verdict").selectOption("supported");
+  await page.getByLabel("Rationale").fill(acceptanceCases[0].rationale);
+  await page.getByLabel("Reviewer label").fill("Synthetic resumed reviewer");
+  await page.getByRole("button", { name: "Save review" }).click();
+  await expect(page.locator("#status")).toContainText("Saved");
+  const after = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export packet" }).click();
+  const saved = JSON.parse(await readFile((await (await after).path())!, "utf8"));
+  expect(saved.reviews.slice(0, 4)).toEqual(imported.reviews);
+  expect(saved.reviews).toHaveLength(5);
+  expect(saved.reviews[4].id).toBe(`review-${fresh}`);
+});
+
 test("acceptance example starts unreviewed and carries human judgments through export and reimport", async ({
   page,
 }) => {
@@ -144,7 +255,7 @@ test("acceptance example starts unreviewed and carries human judgments through e
       ...source,
       nfc_sha256: source.sha256,
     })),
-    reviews: acceptanceCases.map((review, i) => {
+    reviews: acceptanceCases.map((review) => {
       const start = sourceText.indexOf(review.span);
       const end = start + review.span.length;
       const prefix = Array.from(sourceText.slice(0, start)).slice(-32).join("");
@@ -152,7 +263,9 @@ test("acceptance example starts unreviewed and carries human judgments through e
       const codePointStart = Array.from(sourceText.slice(0, start)).length;
       const codePointEnd = Array.from(sourceText.slice(0, end)).length;
       return {
-        id: `review-${i + 1}`,
+        id: expect.stringMatching(
+          /^review-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+        ),
         claim_id: review.id,
         source_id: "refund-record-1042",
         source_sha256: acceptance.sources[0].sha256,
@@ -173,6 +286,7 @@ test("acceptance example starts unreviewed and carries human judgments through e
       };
     }),
   });
+  expect(new Set(exported.reviews.map((review: { id: string }) => review.id)).size).toBe(4);
   expect(exported.claims.map((claim: { id: string }) => claim.id)).toEqual([
     "refund-confirmed",
     "refund-contradicted",

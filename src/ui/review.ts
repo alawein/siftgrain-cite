@@ -174,10 +174,12 @@ export function mountReview(
     try {
       requireValue(!!previous, "Import a packet first");
       const selected = source();
-      let number = previous.reviews.length + 1;
-      while (previous.reviews.some((row) => row.id === `review-${number}`)) number++;
+      let id: string;
+      do {
+        id = `review-${crypto.randomUUID()}`;
+      } while (previous.reviews.some((row) => row.id === id));
       const review: LegacyReview = {
-        id: `review-${number}`,
+        id,
         claim_id: claimControl.value,
         source_id: selected.id,
         source_sha256: selected.sha256,

@@ -54,7 +54,7 @@ Each reviewer packet must have the same sources and claims. Use a distinct **Rev
 
 Use **Import packet** to load one export, then **Merge reviewer packet** to select the other. Sources and claims must match, including citation order. Exact duplicate reviews are deduplicated; conflicting duplicate review IDs reject the merge and keep current work. New history from the selected packet appends after current history. Choose **Export packet** to save the merged result.
 
-Independent copies can generate the same review IDs. Different reviewer labels do not resolve that conflict: the packets must already have nonconflicting review IDs for their differing records. The page has no control for renaming review IDs.
+New reviews receive random UUID-based IDs so independent copies can merge their work. Existing imported IDs stay unchanged; conflicting existing IDs still reject the merge and keep current work. Different reviewer labels do not resolve an ID conflict.
 
 The agreement display uses the latest appended nonstale rating per reviewer and claim/source pair. It reports complete pairs, missing ratings, excluded stale records, and available coefficients. Self-reported labels do not establish independent reviewers, and agreement is not claim accuracy. See the [merge contract](adapters.md#merge-and-agreement) for the calculation limits.
 
