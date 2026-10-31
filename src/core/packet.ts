@@ -1,4 +1,4 @@
-import validateSchema from "./generated/packet-validator.js";
+import validateSchema from "../generated/packet-validator.js";
 import { validSpan, selectors, type TextQuoteSelector, type TextPositionSelector } from "./spans";
 export type Hash = (text: string) => Promise<string>;
 export type Verdict = "supported" | "partial" | "contradicted" | "unverifiable";

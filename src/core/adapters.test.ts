@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import packetInput from "../examples/packet.json";
-import reviewedInput from "../examples/reviewed.json";
+import packetInput from "../../examples/packet.json";
+import reviewedInput from "../../examples/reviewed.json";
 import { csvExport, importTrace } from "./adapters";
 import { sha256 } from "./hash";
 import { parsePacket } from "./packet";

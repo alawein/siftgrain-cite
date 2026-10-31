@@ -55,14 +55,14 @@ export async function importTrace(raw: string, hash: Hash): Promise<Packet> {
     );
     const ids: string[] = [];
     for (const [j, d] of documents.entries()) {
-      const document = typeof d === "string" ? { page_content: d } : obj(d);
-      const text = document.page_content ?? document.text;
+      const sourceDocument = typeof d === "string" ? { page_content: d } : obj(d);
+      const text = sourceDocument.page_content ?? sourceDocument.text;
       requireValue(
         typeof text === "string" && text.length <= 100000,
         "trace document text required or exceeds cap",
       );
-      const metadata = document.metadata === undefined ? {} : obj(document.metadata);
-      const title = metadata.title ?? document.title ?? `Trace ${index + 1} source ${j + 1}`;
+      const metadata = sourceDocument.metadata === undefined ? {} : obj(sourceDocument.metadata);
+      const title = metadata.title ?? sourceDocument.title ?? `Trace ${index + 1} source ${j + 1}`;
       requireValue(typeof title === "string", "trace title must be text");
       const id = `run-${index + 1}-source-${j + 1}`;
       ids.push(id);

@@ -828,8 +828,8 @@ test("malicious text is inert; stale reviews do not quote changed source", async
 test("normalization-only source changes remain stale and never quote revised offsets", async ({
   page,
 }) => {
-  const { parsePacket } = await import("../../src/packet");
-  const { appendReview } = await import("../../src/reviews");
+  const { parsePacket } = await import("../../src/core/packet");
+  const { appendReview } = await import("../../src/core/reviews");
   const hash = async (text: string) => createHash("sha256").update(text).digest("hex");
   const legacy = (text: string) => ({
     schema_version: 1,

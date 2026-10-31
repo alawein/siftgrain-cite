@@ -8,7 +8,7 @@ import console from "node:console";
 const schema = JSON.parse(await readFile("schema/claim-review-packet.v1.json", "utf8"));
 const validate = new Ajv2020({ allErrors: true }).compile(schema);
 const result = await build({
-  entryPoints: ["src/packet.ts"],
+  entryPoints: ["src/core/packet.ts"],
   bundle: true,
   format: "esm",
   write: false,

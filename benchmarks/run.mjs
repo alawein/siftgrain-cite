@@ -10,7 +10,7 @@ import console from "node:console";
 const compiled = await build({
   stdin: {
     contents:
-      'export * from "./src/packet";export * from "./src/spans";export * from "./src/reviews";',
+      'export * from "./src/core/packet";export * from "./src/core/spans";export * from "./src/core/reviews";',
     resolveDir: process.cwd(),
   },
   bundle: true,

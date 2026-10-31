@@ -30,6 +30,6 @@ entire W3C export. Its native export/reimport retains every judgment and does
 not invent original evidence. UTF-16 native offsets and v0.2/v0.3 migration
 semantics are unchanged in v0.3.1.
 
-Run `npm test -- src/interoperability.test.ts`. Existing browser tests also
+Run `npm test -- src/core/interoperability.test.ts`. Existing browser tests also
 exercise CSP, local-file offline operation, storage failures and beforeunload.
 This work does not change those product code paths.

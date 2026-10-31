@@ -4,17 +4,17 @@ import {
   type Packet,
   type LegacyReview,
   type Verdict,
-} from "./packet.js";
-import { sha256 } from "./hash.js";
-import { appendReview, latestReviews, reviewState } from "./reviews.js";
-import { validSpan, sourceOffset } from "./spans.js";
-import { buildPacket, clean, draftClaim } from "./builder.js";
+} from "./core/packet.js";
+import { sha256 } from "./core/hash.js";
+import { appendReview, latestReviews, reviewState } from "./core/reviews.js";
+import { validSpan, sourceOffset } from "./core/spans.js";
+import { buildPacket, clean, draftClaim } from "./core/builder.js";
 import example from "../examples/packet.json";
 import acceptance from "../examples/acceptance.json";
 import acceptanceReviewed from "../examples/acceptance-reviewed.json";
-import { webAnnotations } from "./annotation.js";
-import { importTrace, labelExport, csvExport } from "./adapters.js";
-import { agreement, mergePackets } from "./coordination.js";
+import { webAnnotations } from "./core/annotation.js";
+import { importTrace, labelExport, csvExport } from "./core/adapters.js";
+import { agreement, mergePackets } from "./core/coordination.js";
 import { setupViewer } from "./viewer.js";
 import { saveDraft, readDraft, clearDraft } from "./draft.js";
 

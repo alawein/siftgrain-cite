@@ -108,7 +108,7 @@ test("RetrievalQA output result/source_documents imports and conflicting aliases
   ).rejects.toThrow("exactly one alias");
 });
 test("precompiled published browser schema rejects malformed structure without runtime code generation", async () => {
-  const validator = await import("./generated/packet-validator.js");
+  const validator = await import("../generated/packet-validator.js");
   const p = await fixture();
   expect(validator.default(p)).toBe(true);
   expect(validator.default({ ...p, unexpected: "field" })).toBe(false);
@@ -135,7 +135,7 @@ test("sparse agreement retains full missing denominator with many unreviewed pai
   expect(result.krippendorff_alpha).toBeNull();
 });
 test("browser schema validation bounds diagnostic amplification on malformed collections", async () => {
-  const { default: validate } = await import("./generated/packet-validator.js");
+  const { default: validate } = await import("../generated/packet-validator.js");
   expect(
     validate({
       schema_version: 1,
