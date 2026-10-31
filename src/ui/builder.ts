@@ -66,7 +66,8 @@ export function mountBuilder(store: Store, onApplied: (note: string) => void): v
     text.placeholder = "State the claim in one sentence…";
     text.maxLength = 10000;
     text.name = "claim-text";
-    const cite = document.createElement("input");
+    const cite = document.createElement("textarea");
+    cite.rows = 2;
     cite.placeholder = "policy-1, policy-2…";
     cite.name = "claim-citations";
     cite.spellcheck = false;
@@ -136,15 +137,16 @@ export function mountBuilder(store: Store, onApplied: (note: string) => void): v
     );
   }
   async function applyBuilderPacket(): Promise<void> {
-    const ticket = store.ticket();
+    const previous = store.get(),
+      ticket = store.beginOperation();
     beginBusy();
     try {
       const next = await builderPacket();
-      if (ticket !== store.ticket()) {
+      if (ticket !== store.ticket() || previous !== store.get()) {
         setBuilderStatus(false, "Session changed while building; packet not applied.");
         return;
       }
-      store.set(next);
+      store.set(next, ticket);
       onApplied("Built packet in memory. Save reviews, then export to keep them.");
       setBuilderStatus(true, "Packet ready in the review form.");
     } catch (error) {

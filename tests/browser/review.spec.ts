@@ -916,7 +916,7 @@ test("builder creates, downloads, reviews, exports and reimports", async ({ page
   await expect(page.locator("#builder-sources")).toContainText("SHA-256:");
   await page.locator("#builder-claims input").first().fill("c1");
   await page.locator("#builder-claims input").nth(1).fill("Refunds within 30 days.");
-  await page.locator("#builder-claims input").nth(2).fill("policy-1");
+  await page.getByLabel("Citations (comma or newline separated)").fill("policy-1");
   const packetFile = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download packet file" }).click();
   const packetDownload = await packetFile;
@@ -943,6 +943,69 @@ test("builder creates, downloads, reviews, exports and reimports", async ({ page
   const downloaded = await packetDownload.path();
   await page.getByLabel("Import packet").setInputFiles(downloaded!);
   await expect(page.locator("#status")).toContainText("Imported");
+});
+
+test("builder preserves a review saved while its confirmed replacement is hashing", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await importPacket(page);
+  await page.getByRole("button", { name: "New packet" }).click();
+  await page.getByLabel("Source id", { exact: true }).fill("replacement-source");
+  await page.getByLabel("Source title", { exact: true }).fill("Synthetic replacement");
+  await page
+    .locator("#builder-sources")
+    .getByLabel("Source text", { exact: true })
+    .fill("Replacement evidence.");
+  await expect(page.locator("#builder-sources")).toContainText("SHA-256:");
+  await page.getByLabel("Claim id", { exact: true }).fill("replacement-claim");
+  await page.getByLabel("Claim text", { exact: true }).fill("Replacement claim.");
+  await page.getByLabel("Citations (comma or newline separated)").fill("replacement-source");
+  const use = page.getByRole("button", { name: "Use packet", exact: true });
+  await use.click();
+  await expect(page.locator("#builder-status")).toContainText("again to confirm");
+  const release = await use.evaluateHandle(
+    (button) =>
+      new Promise<() => void>((started) => {
+        const original = SubtleCrypto.prototype.digest;
+        SubtleCrypto.prototype.digest = async function (...args) {
+          SubtleCrypto.prototype.digest = original;
+          await new Promise<void>((resume) => started(resume));
+          return original.apply(this, args);
+        };
+        (button as HTMLButtonElement).click();
+      }),
+  );
+  await saveFirstReview(page, "Saved while the builder was hashing.");
+  await expect(page.locator("#history p")).toHaveCount(1);
+  await release.evaluate((resume) => resume());
+  await expect(page.locator("#status")).toHaveAttribute("aria-busy", "false");
+  await expect(page.locator("#history p")).toHaveCount(1);
+  await expect(page.locator("#history")).toContainText("Saved while the builder was hashing.");
+  await expect(page.locator("#builder-status")).toContainText(
+    "Session changed while building; packet not applied.",
+  );
+});
+
+test("builder keeps newline citation IDs in source order in the built packet", async ({ page }) => {
+  await page.goto("./");
+  await page.getByRole("button", { name: "New packet" }).click();
+  for (const [index, id] of ["first", "second"].entries()) {
+    if (index) await page.getByRole("button", { name: "Add source", exact: true }).click();
+    const row = page.locator("#builder-sources fieldset").nth(index);
+    await row.getByLabel("Source id", { exact: true }).fill(id);
+    await row.getByLabel("Source title", { exact: true }).fill(`Synthetic ${id}`);
+    await row.getByLabel("Source text", { exact: true }).fill(`Evidence from ${id}.`);
+  }
+  await page.getByLabel("Claim id", { exact: true }).fill("claim");
+  await page.getByLabel("Claim text", { exact: true }).fill("Synthetic claim.");
+  await page.getByLabel("Citations (comma or newline separated)").fill("first\nsecond");
+  await page.getByRole("button", { name: "Use packet", exact: true }).click();
+  await expect(page.locator("#builder-status")).toContainText("Packet ready");
+  const downloaded = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export packet", exact: true }).click();
+  const packet = JSON.parse(await readFile((await (await downloaded).path())!, "utf8"));
+  expect(packet.claims[0].citation_ids).toEqual(["first", "second"]);
 });
 
 test("builder rejects empty citations, confirms once, keeps review work", async ({ page }) => {
