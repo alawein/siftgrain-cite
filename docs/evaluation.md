@@ -29,8 +29,7 @@ This is an automated simulation, not manual zoom or screen-reader certification.
 Initial migration/selector/normalization feature tests failed for missing behavior.
 The draft, unavailable-storage and CSP browser tests each failed before those
 features existed. A migrated packet that would exceed the native import byte limit
-failed its regression before incremental byte accounting was added. Final exact
-counts and command outcomes are recorded in AUDIT_VERIFICATION.md after execution.
+failed its regression before incremental byte accounting was added.
 
 Windows WebKit's simulated setOffline flag historically caused NotReadableError
 on local exported files. HTTP/HTTPS route blocking preserves filesystem reads.

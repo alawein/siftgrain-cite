@@ -10,7 +10,7 @@ Local JSON row, array, `{runs: [...]}` or nonblank JSONL rows. Row answer: outpu
 
 Reviewer packet uploads follow the native packet encoding contract: valid UTF-8 without a BOM. Invalid encoding rejects the merge and preserves current work.
 
-Sources and claims must match exactly after sorting by ID; citation order is preserved. Conflicting duplicate review IDs fail. Exact duplicates deduplicate. Novel right-hand histories append after left-hand history. Last appended per claim/source/reviewer is the current nonstale rating used for agreement; labels do not establish independent humans. Stale records are excluded and counted. Metrics in DECISIONS.md; unit tests include hand-computed nontrivial coefficients and missing ratings. Complete-item counts accompany coefficients; no confidence interval is invented for a user-supplied packet.
+Sources and claims must match exactly after sorting by ID; citation order is preserved. Conflicting duplicate review IDs fail. Exact duplicates deduplicate. Novel right-hand histories append after left-hand history. Last appended per claim/source/reviewer is the current nonstale rating used for agreement; labels do not establish independent humans. Stale records are excluded and counted. Metrics follow the [durable decisions](adr/0001-static-distribution.md#product-contract-addendum); unit tests include hand-computed nontrivial coefficients and missing ratings. Complete-item counts accompany coefficients; no confidence interval is invented for a user-supplied packet.
 
 ## Analysis labels v1
 

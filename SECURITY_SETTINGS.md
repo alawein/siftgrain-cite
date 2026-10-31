@@ -21,8 +21,7 @@ The exact URL is narrowly excluded from anonymous link checks because it require
 maintainer access. Public documentation/release links are not exempted.
 
 Registry trusted-publisher setup is authorized. Credentials remain human-entered
-through the managed flow. Do not create/rotate a token to bypass missing access;
-see [release readiness](RELEASE_READY.md) for the verified failure and retry states.
+through the managed flow. Do not create/rotate a token to bypass missing access.
 
 ## Dated read-only evidence
 
