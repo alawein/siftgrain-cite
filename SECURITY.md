@@ -6,7 +6,7 @@ Security fixes target the latest release only. Use the latest release when repor
 
 ## Report a vulnerability
 
-Email contact@meshal.ai. Do not open a public issue for a vulnerability.
+Email <contact@meshal.ai>. Do not open a public issue for a vulnerability.
 Include the affected version, steps to reproduce, expected behavior, and observed impact.
 Use synthetic packet content and leave out private source text, credentials, and personal data.
 
