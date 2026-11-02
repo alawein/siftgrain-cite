@@ -128,3 +128,9 @@ jobs:
         env:
           PYTHONUTF8: "1"
       - run: npm run build && npm run perf:budget
+      - name: Report development dependency audit
+        continue-on-error: true
+        run: npm audit
+      - name: Report production dependency audit
+        continue-on-error: true
+        run: npm audit --omit=dev

@@ -100,6 +100,20 @@ const technical = new Map([
     "src/core/schema.test.ts",
   ].map((file) => [file, ["claim-review-packet.v1.json"]]),
   ["scripts/pack-check.test.mjs", ["claim-review-packet.v1.json", '"claim-review"']],
+  [
+    ".github/workflows/release.yml",
+    ["release-assets claim-review ", "release-assets/claim-review-*.tgz"],
+  ],
+  ...[
+    "scripts/publish-release.mjs",
+    "scripts/release-policy.mjs",
+    "scripts/release-policy.test.mjs",
+    "scripts/upload-release.mjs",
+    "scripts/upload-release.test.mjs",
+    "scripts/verify-release-artifacts.mjs",
+    "scripts/verify-release-artifacts.test.mjs",
+    "scripts/npm-local-artifact.test.mjs",
+  ].map((file) => [file, ["claim-review"]]),
   ["src/ui/draft.ts", ["claim-review.draft.v1"]],
   ["tests/browser/hardening.spec.ts", ["claim-review.draft.v1"]],
   [

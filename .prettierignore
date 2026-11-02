@@ -22,12 +22,3 @@ benchmarks/v1/
 /docs/shared-history.json
 /docs/recent-history.json
 /docs/dev-tool-versions.json
-
-/scripts/publish-release.mjs
-/scripts/upload-release.mjs
-/scripts/verify-release-artifacts.mjs
-/scripts/release-policy.mjs
-/scripts/release-policy.test.mjs
-/scripts/upload-release.test.mjs
-/scripts/verify-release-artifacts.test.mjs
-/scripts/npm-local-artifact.test.mjs

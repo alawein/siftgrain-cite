@@ -8,14 +8,14 @@ concurrency:
   group: npm-${{ github.ref }}
   cancel-in-progress: false
 jobs:
-  publish:
+  build:
     if: github.repository == 'alawein/siftgrain-cite'
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    environment: npm
     permissions:
       contents: read
       id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -31,9 +31,80 @@ jobs:
           git merge-base --is-ancestor HEAD origin/main
           node -e 'const p=require("./package.json"); if(process.env.TAG!=="v"+p.version) process.exit(1)'
       - run: npm ci
-      - run: npm install --global npm@12.2.0
       - run: npm run check:all
       - run: python -m unittest discover -s studies/ais-pilot -p test_analysis.py
       - run: npx playwright install --with-deps
       - run: npm run test:browser
-      - run: npm publish --access public --provenance
+      - name: Pack canonical build without invoking prepack a second time
+        run: |
+          mkdir release-assets
+          npm pack --ignore-scripts --pack-destination release-assets
+          cp dist/index.html release-assets/index.html
+          node scripts/verify-release-artifacts.mjs create release-assets claim-review "${GITHUB_REF_NAME#v}"
+      - name: Retain successful build independently of publication
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-assets
+          path: release-assets/
+          if-no-files-found: error
+          retention-days: 90
+      - uses: actions/attest-build-provenance@8beda2b7ed98355c0e97c0a63bec38ae472e66c4 # v4
+        with:
+          subject-path: |
+            release-assets/claim-review-*.tgz
+            release-assets/index.html
+      - name: Verify exact hosted build identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for file in release-assets/*.tgz release-assets/index.html; do
+            gh attestation verify "$file" --repo "$GITHUB_REPOSITORY" --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" --source-digest "$GITHUB_SHA" --source-ref "$GITHUB_REF" --deny-self-hosted-runners
+          done
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22.23.2"
+      - run: npm install --global npm@12.2.0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-assets
+          path: release-assets
+      - name: Publish same bytes through OIDC or verify an existing identical version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/publish-release.mjs
+  release-upload:
+    needs: [build, publish]
+    if: always() && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22.23.2"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-assets
+          path: release-assets
+      - name: Upload canonical bytes without replacing mismatching assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+        run: node scripts/upload-release.mjs
