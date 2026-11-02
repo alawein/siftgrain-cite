@@ -179,6 +179,26 @@ test("standalone strict CSP blocks network and active imported text, exports W3C
   expect(exported.items[0].creator.name).toBe("Person");
 });
 
+test("malformed UTF-8 leaves the current claim and saved review visible", async ({ page }) => {
+  await page.goto("./");
+  await load(page);
+  await save(page);
+  const claim = page.locator("#claim-text");
+  const originalClaim = JSON.parse(input).claims[0].text;
+  await expect(claim).toHaveText(originalClaim);
+  await page.getByLabel("Import packet").setInputFiles({
+    name: "invalid.json",
+    mimeType: "application/json",
+    buffer: Buffer.from([0xff, 0xfe, 0x00]),
+  });
+  await expect(page.getByRole("alert")).toContainText(
+    "Import failed; current work kept: TypeError:",
+  );
+  await expect(claim).toBeVisible();
+  await expect(claim).toHaveText(originalClaim);
+  await expect(page.getByLabel("Review history")).toContainText("Person: Reason");
+});
+
 test("invalid saved draft preserves the current exported packet", async ({ page }) => {
   await page.goto("./");
   await load(page);
@@ -190,6 +210,29 @@ test("invalid saved draft preserves the current exported packet", async ({ page 
   await page.getByRole("button", { name: "Restore saved draft" }).click();
   await expect(page.locator("#status")).toContainText("current work kept");
   await expect(page.getByLabel("Review history")).toContainText("Person: Reason");
+});
+test("a full draft store leaves the new review in memory and its warning focused", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await load(page);
+  await save(page);
+  const optIn = page.getByLabel("Save draft on this device");
+  await optIn.check();
+  await page.evaluate(() => {
+    Storage.prototype.setItem = () => {
+      throw new DOMException("full", "QuotaExceededError");
+    };
+  });
+  await page.getByLabel("Rationale").fill("Second review");
+  await page.getByRole("button", { name: "Save review" }).click();
+  await expect(page.getByLabel("Review history")).toContainText("Person: Second review");
+  const status = page.locator("#status");
+  await expect(status).toHaveText(
+    "Device draft storage unavailable; work kept in memory. Export to keep it.",
+  );
+  await expect(status).toBeFocused();
+  await expect(optIn).not.toBeChecked();
 });
 test("quota failure disables draft saving and keeps history plus the close guard", async ({
   page,

@@ -7,6 +7,57 @@ import { createHash } from "node:crypto";
 const expected = JSON.parse(await readFile("examples/expected.json", "utf8"));
 const input = await readFile("examples/packet.json", "utf8");
 
+test("header shows the Siftgrain Cite mark and unchanged tagline", async ({ page }) => {
+  await page.goto("./");
+  const mark = page.locator("#brand-mark");
+  await expect(mark).toBeVisible();
+  await expect(mark).toHaveAttribute("role", "img");
+  await expect(mark).toHaveAttribute("aria-label", "Siftgrain Cite");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Every judgment needs a passage.",
+  );
+});
+
+test("one look keeps dark default, light persistence and pause controls", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("./");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator("html")).not.toHaveAttribute("data-vibe");
+  await expect(page.getByLabel("Motion vibe")).toHaveCount(0);
+  await expect(page.locator("#hero-canvas")).toHaveCount(0);
+  await page.getByLabel("Appearance").selectOption("light");
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(244, 242, 247)");
+  await page.reload();
+  await expect(page.getByLabel("Appearance")).toHaveValue("light");
+  const pause = page.getByRole("button", { name: "Pause motion" });
+  await pause.click();
+  await expect(pause).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("html")).toHaveAttribute("data-paused", "true");
+  await expect(pause).toHaveCSS("transition-duration", "0s");
+  await pause.click();
+  await expect(pause).toHaveAttribute("aria-pressed", "false");
+  await page.getByLabel("Appearance").selectOption("dark");
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(16, 12, 28)");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("siftgrain-viewer")!))).toEqual({
+    theme: "dark",
+  });
+});
+
+test("legacy look preference retains light without restoring a look", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    localStorage.setItem("siftgrain-viewer", JSON.stringify({ theme: "light", vibe: "pixel" }));
+  });
+  await page.goto("./");
+  await expect(page.getByLabel("Appearance")).toHaveValue("light");
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(244, 242, 247)");
+  await expect(page.locator("html")).not.toHaveAttribute("data-vibe");
+  await page.getByRole("button", { name: "Load synthetic example", exact: true }).click();
+  await expect(page.locator("#status")).toContainText("Imported");
+  expect(errors).toEqual([]);
+});
+
 const acceptanceCases = [
   {
     id: "refund-confirmed",
@@ -33,6 +84,117 @@ const acceptanceCases = [
     rationale: "The baseline was already true and the required change has no known action receipt.",
   },
 ];
+
+test("independent acceptance copies merge native reviews without changing their IDs", async ({
+  page,
+  browser,
+  baseURL,
+}, info) => {
+  const other = await browser.newPage({ baseURL, acceptDownloads: true });
+  const acceptance = await readFile("examples/acceptance.json", "utf8");
+  const sourceText = JSON.parse(acceptance).sources[0].text;
+  const start = sourceText.indexOf(acceptanceCases[0].span);
+  expect(start).toBeGreaterThanOrEqual(0);
+  const exports = [];
+  try {
+    for (const [index, copy] of [page, other].entries()) {
+      await copy.goto("./");
+      await copy.getByLabel("Import packet").setInputFiles({
+        name: "acceptance.json",
+        mimeType: "application/json",
+        buffer: Buffer.from(acceptance),
+      });
+      await expect(copy.locator("#status")).toContainText("Imported");
+      await copy.getByLabel("Span start").fill(String(start));
+      await copy.getByLabel("Span end").fill(String(start + acceptanceCases[0].span.length));
+      await copy.getByLabel("Verdict").selectOption("supported");
+      await copy.getByLabel("Rationale").fill(acceptanceCases[0].rationale);
+      await copy.getByLabel("Reviewer label").fill(`Synthetic reviewer ${index + 1}`);
+      await copy.getByRole("button", { name: "Save review" }).click();
+      await expect(copy.locator("#status")).toContainText("Saved");
+      const download = copy.waitForEvent("download");
+      await copy.getByRole("button", { name: "Export packet" }).click();
+      const path = info.outputPath(`reviewer-${index + 1}.json`);
+      await (await download).saveAs(path);
+      exports.push({ path, packet: JSON.parse(await readFile(path, "utf8")) });
+    }
+    await page.getByLabel("Import packet").setInputFiles(exports[0].path);
+    await expect(page.locator("#status")).toContainText("Imported");
+    await page.getByLabel("Merge reviewer packet").setInputFiles(exports[1].path);
+    await expect(page.locator("#status")).toContainText("Reviewer histories merged");
+    await expect(page.locator("#history p")).toHaveCount(2);
+    for (const reviewer of ["Synthetic reviewer 1", "Synthetic reviewer 2"])
+      await expect(page.locator("#history")).toContainText(reviewer);
+    const originalReviews = exports.flatMap(({ packet }) => packet.reviews);
+    expect(new Set(originalReviews.map((review) => review.id)).size).toBe(2);
+    const download = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Export packet" }).click();
+    const mergedPath = info.outputPath("merged.json");
+    await (await download).saveAs(mergedPath);
+    const merged = JSON.parse(await readFile(mergedPath, "utf8"));
+    expect(merged.schema_version).toBe(2);
+    expect(merged.reviews).toEqual(originalReviews);
+    expect(merged.reviews.map((review: { reviewer: string }) => review.reviewer)).toEqual([
+      "Synthetic reviewer 1",
+      "Synthetic reviewer 2",
+    ]);
+    await page.getByLabel("Merge reviewer packet").setInputFiles(exports[0].path);
+    await expect(page.locator("#status")).toContainText("Reviewer histories merged");
+    await expect(page.locator("#history p")).toHaveCount(2);
+    const conflict = structuredClone(exports[1].packet);
+    conflict.reviews[0].id = originalReviews[0].id;
+    await page.getByLabel("Merge reviewer packet").setInputFiles({
+      name: "conflicting-existing-id.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(conflict)),
+    });
+    await expect(page.getByRole("alert")).toContainText("review ID collision");
+    await expect(page.locator("#history p")).toHaveCount(2);
+    const preserved = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Export packet" }).click();
+    expect(JSON.parse(await readFile((await (await preserved).path())!, "utf8"))).toEqual(merged);
+  } finally {
+    await other.close();
+  }
+});
+
+test("new review IDs skip occupied UUIDs and preserve imported history", async ({ page }) => {
+  const packet = JSON.parse(await readFile("examples/acceptance-reviewed.json", "utf8"));
+  const occupied = "00000000-0000-4000-8000-000000000001";
+  const fresh = "00000000-0000-4000-8000-000000000002";
+  packet.reviews[0].id = `review-${occupied}`;
+  await page.goto("./");
+  await page.getByLabel("Import packet").setInputFiles({
+    name: "occupied-id.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(packet)),
+  });
+  await expect(page.locator("#status")).toContainText("Imported");
+  const before = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export packet" }).click();
+  const imported = JSON.parse(await readFile((await (await before).path())!, "utf8"));
+  await page.evaluate(
+    ([occupied, fresh]) => {
+      const ids = [occupied, fresh];
+      crypto.randomUUID = () => ids.shift()! as ReturnType<Crypto["randomUUID"]>;
+    },
+    [occupied, fresh],
+  );
+  const start = packet.sources[0].text.indexOf(acceptanceCases[0].span);
+  await page.getByLabel("Span start").fill(String(start));
+  await page.getByLabel("Span end").fill(String(start + acceptanceCases[0].span.length));
+  await page.getByLabel("Verdict").selectOption("supported");
+  await page.getByLabel("Rationale").fill(acceptanceCases[0].rationale);
+  await page.getByLabel("Reviewer label").fill("Synthetic resumed reviewer");
+  await page.getByRole("button", { name: "Save review" }).click();
+  await expect(page.locator("#status")).toContainText("Saved");
+  const after = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export packet" }).click();
+  const saved = JSON.parse(await readFile((await (await after).path())!, "utf8"));
+  expect(saved.reviews.slice(0, 4)).toEqual(imported.reviews);
+  expect(saved.reviews).toHaveLength(5);
+  expect(saved.reviews[4].id).toBe(`review-${fresh}`);
+});
 
 test("acceptance example starts unreviewed and carries human judgments through export and reimport", async ({
   page,
@@ -104,7 +266,7 @@ test("acceptance example starts unreviewed and carries human judgments through e
       ...source,
       nfc_sha256: source.sha256,
     })),
-    reviews: acceptanceCases.map((review, i) => {
+    reviews: acceptanceCases.map((review) => {
       const start = sourceText.indexOf(review.span);
       const end = start + review.span.length;
       const prefix = Array.from(sourceText.slice(0, start)).slice(-32).join("");
@@ -112,7 +274,9 @@ test("acceptance example starts unreviewed and carries human judgments through e
       const codePointStart = Array.from(sourceText.slice(0, start)).length;
       const codePointEnd = Array.from(sourceText.slice(0, end)).length;
       return {
-        id: `review-${i + 1}`,
+        id: expect.stringMatching(
+          /^review-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+        ),
         claim_id: review.id,
         source_id: "refund-record-1042",
         source_sha256: acceptance.sources[0].sha256,
@@ -133,6 +297,7 @@ test("acceptance example starts unreviewed and carries human judgments through e
       };
     }),
   });
+  expect(new Set(exported.reviews.map((review: { id: string }) => review.id)).size).toBe(4);
   expect(exported.claims.map((claim: { id: string }) => claim.id)).toEqual([
     "refund-confirmed",
     "refund-contradicted",
@@ -468,6 +633,102 @@ test("invalid native import preserves reviews without opening replacement confir
   await expect(page.getByRole("button", { name: "Replace current packet" })).toBeHidden();
 });
 
+async function startReadingReplacement(page: import("@playwright/test").Page) {
+  return page.evaluateHandle(
+    (raw) =>
+      new Promise<() => void>((started) => {
+        const file = new File([raw], "replacement.json", { type: "application/json" });
+        file.arrayBuffer = async () => {
+          await new Promise<void>((resume) => started(resume));
+          return File.prototype.arrayBuffer.call(file);
+        };
+        const files = new DataTransfer();
+        files.items.add(file);
+        const control = document.querySelector<HTMLInputElement>("#import")!;
+        control.files = files.files;
+        control.dispatchEvent(new Event("change", { bubbles: true }));
+      }),
+    input,
+  );
+}
+
+test("an older save cannot commit while a replacement file is still being read", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await importPacket(page);
+  await saveFirstReview(page, "Keep this saved review.");
+  await page.getByLabel("Rationale").fill("Superseded save.");
+
+  const releaseSave = await page.evaluateHandle(
+    () =>
+      new Promise<() => void>((started) => {
+        const original = SubtleCrypto.prototype.digest;
+        SubtleCrypto.prototype.digest = async function (...args) {
+          SubtleCrypto.prototype.digest = original;
+          await new Promise<void>((resume) => started(resume));
+          return original.apply(this, args);
+        };
+        document.querySelector<HTMLFormElement>("#review-form")!.requestSubmit();
+      }),
+  );
+  const releaseFile = await startReadingReplacement(page);
+
+  await releaseSave.evaluate((resume) => resume());
+  await expect(page.locator("#status")).toContainText("Session changed; save again");
+  await expect(page.locator("#history p")).toHaveCount(1);
+  await releaseFile.evaluate((resume) => resume());
+  await expect(page.getByRole("button", { name: "Replace current packet" })).toBeVisible();
+  await page.locator("#import-keep").click();
+  await expect(page.locator("#history p")).toHaveCount(1);
+  await expect(page.locator("#history")).toContainText("Keep this saved review.");
+});
+
+test("a review saved during a native file read preserves the review and reports the conflict", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await importPacket(page);
+  const releaseFile = await startReadingReplacement(page);
+  await saveFirstReview(page, "Saved while the file was being read.");
+  await releaseFile.evaluate((resume) => resume());
+  await expect(page.locator("#status")).toContainText(
+    "Import failed; current work kept: Session changed; import again",
+  );
+  await expect(page.getByRole("button", { name: "Replace current packet" })).toBeHidden();
+  await expect(page.locator("#history p")).toHaveCount(1);
+  await expect(page.locator("#history")).toContainText("Saved while the file was being read.");
+});
+
+test("a review saved while an example is loading survives the older replacement", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await importPacket(page);
+  const example = page.getByRole("button", { name: "Load synthetic example", exact: true });
+  await example.click();
+  await expect(page.locator("#status")).toContainText("again to confirm");
+  const release = await example.evaluateHandle(
+    (button) =>
+      new Promise<() => void>((started) => {
+        const original = SubtleCrypto.prototype.digest;
+        SubtleCrypto.prototype.digest = async function (...args) {
+          SubtleCrypto.prototype.digest = original;
+          await new Promise<void>((resume) => started(resume));
+          return original.apply(this, args);
+        };
+        (button as HTMLButtonElement).click();
+      }),
+  );
+  await saveFirstReview(page, "Saved during example import.");
+  await release.evaluate((resume) => resume());
+  await expect(page.locator("#status")).toHaveAttribute("aria-busy", "false");
+  await expect(page.locator("#history")).toContainText("Saved during example import.");
+  await expect(page.getByRole("alert")).toContainText(
+    "Example failed: Session changed; import again",
+  );
+});
+
 test("pending native replacement expires when a new review changes the session", async ({
   page,
 }) => {
@@ -655,7 +916,7 @@ test("builder creates, downloads, reviews, exports and reimports", async ({ page
   await expect(page.locator("#builder-sources")).toContainText("SHA-256:");
   await page.locator("#builder-claims input").first().fill("c1");
   await page.locator("#builder-claims input").nth(1).fill("Refunds within 30 days.");
-  await page.locator("#builder-claims input").nth(2).fill("policy-1");
+  await page.getByLabel("Citations (comma or newline separated)").fill("policy-1");
   const packetFile = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download packet file" }).click();
   const packetDownload = await packetFile;
@@ -682,6 +943,69 @@ test("builder creates, downloads, reviews, exports and reimports", async ({ page
   const downloaded = await packetDownload.path();
   await page.getByLabel("Import packet").setInputFiles(downloaded!);
   await expect(page.locator("#status")).toContainText("Imported");
+});
+
+test("builder preserves a review saved while its confirmed replacement is hashing", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await importPacket(page);
+  await page.getByRole("button", { name: "New packet" }).click();
+  await page.getByLabel("Source id", { exact: true }).fill("replacement-source");
+  await page.getByLabel("Source title", { exact: true }).fill("Synthetic replacement");
+  await page
+    .locator("#builder-sources")
+    .getByLabel("Source text", { exact: true })
+    .fill("Replacement evidence.");
+  await expect(page.locator("#builder-sources")).toContainText("SHA-256:");
+  await page.getByLabel("Claim id", { exact: true }).fill("replacement-claim");
+  await page.getByLabel("Claim text", { exact: true }).fill("Replacement claim.");
+  await page.getByLabel("Citations (comma or newline separated)").fill("replacement-source");
+  const use = page.getByRole("button", { name: "Use packet", exact: true });
+  await use.click();
+  await expect(page.locator("#builder-status")).toContainText("again to confirm");
+  const release = await use.evaluateHandle(
+    (button) =>
+      new Promise<() => void>((started) => {
+        const original = SubtleCrypto.prototype.digest;
+        SubtleCrypto.prototype.digest = async function (...args) {
+          SubtleCrypto.prototype.digest = original;
+          await new Promise<void>((resume) => started(resume));
+          return original.apply(this, args);
+        };
+        (button as HTMLButtonElement).click();
+      }),
+  );
+  await saveFirstReview(page, "Saved while the builder was hashing.");
+  await expect(page.locator("#history p")).toHaveCount(1);
+  await release.evaluate((resume) => resume());
+  await expect(page.locator("#status")).toHaveAttribute("aria-busy", "false");
+  await expect(page.locator("#history p")).toHaveCount(1);
+  await expect(page.locator("#history")).toContainText("Saved while the builder was hashing.");
+  await expect(page.locator("#builder-status")).toContainText(
+    "Session changed while building; packet not applied.",
+  );
+});
+
+test("builder keeps newline citation IDs in source order in the built packet", async ({ page }) => {
+  await page.goto("./");
+  await page.getByRole("button", { name: "New packet" }).click();
+  for (const [index, id] of ["first", "second"].entries()) {
+    if (index) await page.getByRole("button", { name: "Add source", exact: true }).click();
+    const row = page.locator("#builder-sources fieldset").nth(index);
+    await row.getByLabel("Source id", { exact: true }).fill(id);
+    await row.getByLabel("Source title", { exact: true }).fill(`Synthetic ${id}`);
+    await row.getByLabel("Source text", { exact: true }).fill(`Evidence from ${id}.`);
+  }
+  await page.getByLabel("Claim id", { exact: true }).fill("claim");
+  await page.getByLabel("Claim text", { exact: true }).fill("Synthetic claim.");
+  await page.getByLabel("Citations (comma or newline separated)").fill("first\nsecond");
+  await page.getByRole("button", { name: "Use packet", exact: true }).click();
+  await expect(page.locator("#builder-status")).toContainText("Packet ready");
+  const downloaded = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export packet", exact: true }).click();
+  const packet = JSON.parse(await readFile((await (await downloaded).path())!, "utf8"));
+  expect(packet.claims[0].citation_ids).toEqual(["first", "second"]);
 });
 
 test("builder rejects empty citations, confirms once, keeps review work", async ({ page }) => {
@@ -788,8 +1112,8 @@ test("malicious text is inert; stale reviews do not quote changed source", async
 test("normalization-only source changes remain stale and never quote revised offsets", async ({
   page,
 }) => {
-  const { parsePacket } = await import("../../src/packet");
-  const { appendReview } = await import("../../src/reviews");
+  const { parsePacket } = await import("../../src/core/packet");
+  const { appendReview } = await import("../../src/core/reviews");
   const hash = async (text: string) => createHash("sha256").update(text).digest("hex");
   const legacy = (text: string) => ({
     schema_version: 1,

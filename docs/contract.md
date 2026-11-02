@@ -67,7 +67,7 @@ JSON uses JSON.parse's last-key semantics for duplicate object keys; object-key
 duplication is not an integrity signal. Collection IDs/citations are strictly
 checked. Compact exports have no trailing newline and fit the import byte bound.
 
-Packet draft storage is not accessed by default; appearance/vibe preferences use a separate guarded key before paint. Checking Save draft on this device
+Packet draft storage is not accessed by default; theme preferences use a separate guarded key before paint. Checking Save draft on this device
 writes the current canonical packet after import/build/save. Each new page starts
 with saving off. Explicit restore reads and validates a stored packet; explicit
 clear removes it. Every localStorage access is try/catch guarded. Storage failure

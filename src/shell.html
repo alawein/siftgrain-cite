@@ -9,30 +9,29 @@
       content="Browser-only human citation review with exact spans, hash-checked sources and portable review history."
     />
     <meta name="theme-color" content="#100c1c" />
-    <title>Siftgrain Cite | Claim review</title>
+    <title>Siftgrain Cite</title>
     <style id="app-style"></style>
   </head>
   <body>
     <main>
-      <a class="skip" href="#review-form">Skip to review form</a>
+      <a class="skip" href="#review-form" tabindex="0">Skip to review form</a>
       <p class="eyebrow">EXACT PASSAGES / EXPLICIT JUDGMENTS</p>
       <header class="hero">
-        <canvas id="hero-canvas" width="640" height="100" aria-hidden="true"></canvas>
+        <svg id="brand-mark" viewBox="0 0 96 96" role="img" aria-label="Siftgrain Cite">
+          <rect width="96" height="96" rx="18" fill="var(--surface)" />
+          <path d="M24 22h18v10H34v32h8v10H24zm48 0H54v10h8v32h-8v10h18z" fill="var(--accent)" />
+          <path d="M42 39h12v6H42zm0 12h12v6H42z" fill="var(--ink)" />
+          <path d="m37 78 11-8 11 8-11 8z" fill="var(--pass)" />
+        </svg>
         <p class="suite">SIFTGRAIN / CITE</p>
         <h1>Every judgment needs a passage.</h1>
-        <p>Claim review, with evidence you can carry.</p>
+        <p>Review citations, with evidence you can carry.</p>
       </header>
       <nav aria-label="Viewer settings">
         <label for="theme">Appearance</label
         ><select id="theme">
           <option value="dark">Dark</option>
           <option value="light">Light</option></select
-        ><label for="vibe">Motion vibe</label
-        ><select id="vibe">
-          <option value="calm">Calm</option>
-          <option value="cartoon">Cartoon</option>
-          <option value="pixel">Pixel</option>
-          <option value="lab">Lab</option></select
         ><button id="motion-pause" type="button" aria-pressed="false">Pause motion</button>
       </nav>
       <p>Human citation judgments. Hash checks do not prove truth or authorship.</p>

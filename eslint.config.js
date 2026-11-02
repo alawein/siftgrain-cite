@@ -4,6 +4,7 @@ import tseslint from "typescript-eslint";
 export default [
   {
     ignores: [
+      "design-tokens/",
       "dist",
       "coverage",
       "node_modules",

@@ -1,9 +1,0 @@
-# MAIOS context
-
-Source read-only: alawein/maios origin/master `53cf3e4eee49f4281a976a7c5fce6b7ac0b3ec5e`, refreshed 2026-10-13. Owners read: profiles/AGENTS.md, profiles/STYLE.md, profiles/repos.json claim-review entry, root AGENTS.md, docs/reference/agent-prompts.md universal continuation, docs/BACKLOG.md row 20, docs/integrations/codex.json, skills/maios-build/SKILL.md, skills/maios-write/SKILL.md and skills/maios-site-polish/SKILL.md. The last skill is polish-only for meshal-site, so its site-specific gates are not applied to this redesign. Root MAIOS check.py governs MAIOS changes; this repository uses its own check script.
-
-Repository: alawein/claim-review, main target; original baseline `5e05d871a8d17ff00a90f3af008e8a5e8e4f2c10`. Cwd AGENTS.md and README/contract were read. No ancestor project AGENTS.md was found in Desktop/GitHub or alawein. Local execution is verified through PowerShell, npm, Python, Git and gh; no cloud execution is claimed. The dirty MAIOS primary was preserved.
-
-One Controller, feat/citation-studio, a draft PR and parent independent review. The owner's existing compatible-improvement authorization and direct instruction cover implementation/push/draft PR. Preserve release tags, feature branches, hooks and required checks. Do not self-approve. No permanent deletes, secrets operations, messages to people or Dependabot-family changes. Broad rename/transfer, new registry publication and HF upload are prepared separately, not inferred from code review. See MIGRATION.md.
-
-The shared token owner is this repository's private/unpublished design-tokens1.0.0; the other two tools vendor exact bytes. meshal-site brand/tokens.css, brand/brand.json and brand/fonts.css were read-only visual references. No private personal content/artwork is copied. This summary is a source pointer, not a second policy owner.

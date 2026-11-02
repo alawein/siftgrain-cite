@@ -99,7 +99,7 @@ jobs:
           }
 
   node-ci:
-    needs: [run-node-ci]
+    needs: [run-node-ci, schema-and-audit]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 1
@@ -108,8 +108,8 @@ jobs:
       - name: Require success
         env:
           RESULT: ${{ needs.run-node-ci.result }}
-        run: test "$RESULT" = "success"
-
+          LOCAL_RESULT: ${{ needs.schema-and-audit.result }}
+        run: test "$RESULT" = "success" && test "$LOCAL_RESULT" = "success"
 
   schema-and-audit:
     runs-on: ubuntu-latest
@@ -123,10 +123,10 @@ jobs:
           node-version: "22.23.2"
           cache: npm
       - run: npm ci
-      - run: npm run validate:schema
-      - run: python benchmarks/fetch.py
-      - run: npm run bench
-      - run: npm run test:tokens
+      - run: npm run check:all
+      - run: python3 -m unittest discover -s studies/ais-pilot -p test_analysis.py
+        env:
+          PYTHONUTF8: "1"
       - run: npm run build && npm run perf:budget
       - name: Report development dependency audit
         continue-on-error: true

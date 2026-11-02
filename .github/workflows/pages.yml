@@ -16,12 +16,14 @@ jobs:
       pages: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          node-version: '22.23.2'
+          node-version: "22.23.2"
           cache: npm
       - run: npm ci
-      - run: npm run check
+      - run: npm run check:all
       - run: npx playwright install --with-deps
       - run: npm run test:browser
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d
