@@ -23,7 +23,8 @@ a granular access token and interactive 2FA, then bind the workflow:
 
 ```sh
 npm publish . --access public --tag bootstrap
-npm trust github siftgrain-cite --repo alawein/siftgrain-cite --file release.yml
+# Requires npm 11.15.0 or newer.
+npm trust github siftgrain-cite --repo alawein/siftgrain-cite --file release.yml --allow-publish
 ```
 
 Read the binding back after it is created. The bootstrap does not use the
