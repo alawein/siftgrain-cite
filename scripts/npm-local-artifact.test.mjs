@@ -7,7 +7,7 @@ import process from "node:process";
 import { publishArguments } from "./release-policy.mjs";
 
 test("production publish arguments identify a local tarball", () => {
-  const args = publishArguments("release-assets", "claim-review-0.3.2.tgz");
+  const args = publishArguments("release-assets", "siftgrain-cite-0.3.2.tgz");
   expect(args[0]).toBe("publish");
   expect(isAbsolute(args[1])).toBe(true);
   expect(args.slice(2)).toEqual(["--access", "public", "--provenance", "--ignore-scripts"]);
@@ -20,9 +20,9 @@ test("real npm 12.2.0 dry run parses the production tarball argument locally", a
     await mkdir(packageRoot);
     await writeFile(
       join(packageRoot, "package.json"),
-      JSON.stringify({ name: "claim-review", version: "0.3.2" }),
+      JSON.stringify({ name: "siftgrain-cite", version: "0.3.2" }),
     );
-    const name = "claim-review-0.3.2.tgz";
+    const name = "siftgrain-cite-0.3.2.tgz";
     execFileSync("tar", ["-czf", join(root, name), "-C", root, "package"]);
     const config = join(root, "empty.npmrc");
     await writeFile(config, "");
@@ -57,7 +57,7 @@ test("real npm 12.2.0 dry run parses the production tarball argument locally", a
       { encoding: "utf8", env, timeout: 30000 },
     );
     const result = JSON.parse(output);
-    expect(result.id ?? result["claim-review"]?.id).toBe("claim-review@0.3.2");
+    expect(result.id ?? result["siftgrain-cite"]?.id).toBe("siftgrain-cite@0.3.2");
   } finally {
     await rm(root, { recursive: true, force: true });
   }

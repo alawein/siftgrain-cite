@@ -38,7 +38,7 @@ export async function uploadRelease({
   const initialBody = releaseBody(version, buildResult, publishResult);
   if (tag !== `v${version}`) throw new Error("Release tag/version mismatch");
   const repository = "alawein/siftgrain-cite";
-  await verifyInventory(assetDirectory, "claim-review", version);
+  await verifyInventory(assetDirectory, "siftgrain-cite", version);
   const releases = JSON.parse(
     await gh(["api", `repos/${repository}/releases`, "--paginate", "--slurp"]),
   ).flat();

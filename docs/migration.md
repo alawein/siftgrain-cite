@@ -1,8 +1,8 @@
 # Migration
 
 Displayed name is Siftgrain Cite and the GitHub repository is
-`alawein/siftgrain-cite`. The npm package remains `claim-review`; no import path,
-packet namespace, tag or native packet version changes. Build with `npm ci` and
+`alawein/siftgrain-cite`. The npm package is `siftgrain-cite`; the packet
+namespace, tag and native packet version are unchanged. Build with `npm ci` and
 `npm run build`, then open `dist/index.html`. Existing v0.2 schema1 packets
 migrate to schema2 without changing source text; use native Export packet to
 preserve enriched history. W3C and CSV/label exports do not replace the resumable
@@ -13,14 +13,37 @@ release-workflow repository guard use that repository name. Read back the native
 npm trusted publisher binding against `alawein/siftgrain-cite`; local metadata
 does not prove that registry configuration changed.
 
+## First publication
+
+A new package name must exist before npm can hold a trusted publisher, so
+`siftgrain-cite` needs one owner-authorized publish outside the release
+workflow. From a temporary directory whose `package.json` declares the package
+name and a separate bootstrap version such as `0.0.0-bootstrap.0`, publish with
+a granular access token and interactive 2FA, then bind the workflow:
+
+```sh
+npm publish . --access public --tag bootstrap
+# Requires npm 11.15.0 or newer.
+npm trust github siftgrain-cite --repo alawein/siftgrain-cite --file release.yml --allow-publish
+```
+
+Read the binding back after it is created. The bootstrap does not use the
+release version: npm versions are immutable, and `scripts/publish-release.mjs`
+requires npm provenance bound to this release workflow, which a manual publish
+cannot produce. If a maintainer bootstraps the release version anyway, its
+published bytes must match the local tarball the script downloads and compares,
+and the workflow still rejects the version because its provenance is not from
+the workflow. Once the binding exists, a tag release publishes the release
+version through OIDC and moves `latest`.
+
 Preferences use siftgrain-viewer (theme only; older look preferences are ignored). Drafts retain claim-review.draft.v1 and require explicit opt-in. No automatic restore. Merge right-hand novel history takes append precedence, with labels self-reported. Export both original reviewer packets before merging if you need independently frozen inputs.
 
 ## Repository and distribution identities
 
-The GitHub repository is now `alawein/siftgrain-cite`; keep the npm package name `claim-review` and published schema identifiers for compatibility. Preserve all existing tags and feature branches.
+The GitHub repository is now `alawein/siftgrain-cite` and the npm package is `siftgrain-cite`; published schema identifiers stay unchanged for compatibility. Preserve all existing tags and feature branches.
 
 - Any future repository transfer requires exact destination approval, followed by verification of required checks and Pages. No transfer command executed.
 - Dataset upload, only after rights and named destination approval: `hf upload alawein/siftgrain-cite benchmarks/artifacts --repo-type dataset`. Current local mixed-rights archive must not be bulk uploaded without preserving ALCE MIT notice and Wikipedia attribution/share-alike obligations; synthetic-only publication is the safer scoped choice.
 - New release after a named version is approved: `gh release create <approved-version> benchmarks/artifacts/siftgrain-cite-v1.zip --repo alawein/siftgrain-cite --target <reviewed-sha> --notes-file <reviewed-notes>`. Placeholders are intentionally unresolved consequential decisions, not executable authorization.
 
-Keep canonical package name claim-review for this compatible improvement. Existing npm publication failures remain historical facts, not evidence of registry ownership or current publication.
+The canonical package name is `siftgrain-cite`. Existing npm publication failures remain historical facts, not evidence of registry ownership or current publication.

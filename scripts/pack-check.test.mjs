@@ -19,7 +19,7 @@ test("accepts exactly the public package files regardless of order", () => {
 });
 
 test("accepts npm 12's single package record", () => {
-  expect(checkPack({ "claim-review": pack(files)[0] })).toEqual({
+  expect(checkPack({ "siftgrain-cite": pack(files)[0] })).toEqual({
     ok: true,
     missing: [],
     extra: [],
@@ -66,10 +66,10 @@ test.each(
     undefined,
     null,
     {},
-    { "claim-review": pack(files)[0], other: pack(files)[0] },
+    { "siftgrain-cite": pack(files)[0], other: pack(files)[0] },
     { other: pack(files)[0] },
-    { "claim-review": null },
-    { "claim-review": [pack(files)[0]] },
+    { "siftgrain-cite": null },
+    { "siftgrain-cite": [pack(files)[0]] },
     [],
     [pack(files)[0], pack(files)[0]],
     [null],

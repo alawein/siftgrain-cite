@@ -91,7 +91,6 @@ const compatibleFiles = new Set([
 ]);
 // Exact technical data outside the original compatibility owners, never whole test files.
 const technical = new Map([
-  ["README.md", ["`claim-review`"]],
   ["brand/README.md", ["`claim-review`"]],
   ...[
     "benchmarks/prepare.py",
@@ -99,21 +98,7 @@ const technical = new Map([
     "scripts/validate-schema.mjs",
     "src/core/schema.test.ts",
   ].map((file) => [file, ["claim-review-packet.v1.json"]]),
-  ["scripts/pack-check.test.mjs", ["claim-review-packet.v1.json", '"claim-review"']],
-  [
-    ".github/workflows/release.yml",
-    ["release-assets claim-review ", "release-assets/claim-review-*.tgz"],
-  ],
-  ...[
-    "scripts/publish-release.mjs",
-    "scripts/release-policy.mjs",
-    "scripts/release-policy.test.mjs",
-    "scripts/upload-release.mjs",
-    "scripts/upload-release.test.mjs",
-    "scripts/verify-release-artifacts.mjs",
-    "scripts/verify-release-artifacts.test.mjs",
-    "scripts/npm-local-artifact.test.mjs",
-  ].map((file) => [file, ["claim-review"]]),
+  ["scripts/pack-check.test.mjs", ["claim-review-packet.v1.json"]],
   ["src/ui/draft.ts", ["claim-review.draft.v1"]],
   ["tests/browser/hardening.spec.ts", ["claim-review.draft.v1"]],
   [

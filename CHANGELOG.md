@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Rename the npm package to `siftgrain-cite`. The packet namespace, schema
+  identifiers, draft storage key and export filenames are unchanged for
+  compatibility; consumers installing the old package name must switch.
+
+Siftgrain Cite display identity, shared dark/light tokens and four runtime vibes, guarded preferences and bounded WebGL2 completion. Add common trace JSON/JSONL import, keyboard queue, atomic reviewer merge and nominal agreement metrics, analysis label/CSV exports, standalone performance budget and accessibility checks. Native version 2 and v0.2 migration remain compatible. Benchmarks add Unicode/staleness integrity and checksum-pinned external ALCE label preservation without new semantic accuracy claims.
+
 ## 0.3.2 (GitHub published; npm authentication pending)
 
 - Canonical run 37828847596 passed 96 unit, 10 Python and 48 browser tests,
@@ -57,7 +65,3 @@
 - Human verdicts/rationales, safe imports, append history and portable exports.
 - CRLF selection mapping and byte-bounded round trips.
 - Standalone offline HTML and GitHub Pages distribution.
-
-## Unreleased
-
-Siftgrain Cite display identity, shared dark/light tokens and four runtime vibes, guarded preferences and bounded WebGL2 completion. Add common trace JSON/JSONL import, keyboard queue, atomic reviewer merge and nominal agreement metrics, analysis label/CSV exports, standalone performance budget and accessibility checks. Native version 2 and v0.2 migration remain compatible. Benchmarks add Unicode/staleness integrity and checksum-pinned external ALCE label preservation without new semantic accuracy claims.

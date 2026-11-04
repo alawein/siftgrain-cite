@@ -12,13 +12,13 @@ test("release retry reconciles failed publication to verified success without re
     await mkdir(join(root, "package", "dist"), { recursive: true });
     await writeFile(
       join(root, "package", "package.json"),
-      JSON.stringify({ name: "claim-review", version: "0.3.1" }),
+      JSON.stringify({ name: "siftgrain-cite", version: "0.3.1" }),
     );
     await writeFile(join(root, "package", "dist", "index.html"), "offline");
     await writeFile(join(root, "index.html"), "offline");
-    execFileSync("tar", ["-czf", join(root, "claim-review-0.3.1.tgz"), "-C", root, "package"]);
+    execFileSync("tar", ["-czf", join(root, "siftgrain-cite-0.3.1.tgz"), "-C", root, "package"]);
     await rm(join(root, "package"), { recursive: true });
-    await createInventory(root, "claim-review", "0.3.1");
+    await createInventory(root, "siftgrain-cite", "0.3.1");
     let release;
     let releaseTitle;
     let uploads = 0;

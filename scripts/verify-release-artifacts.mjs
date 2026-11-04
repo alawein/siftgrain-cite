@@ -7,7 +7,7 @@ import process from "node:process";
 
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 export async function inspectArtifacts(directory, name, version) {
-  if (name !== "claim-review" || !/^\d+\.\d+\.\d+$/.test(version))
+  if (name !== "siftgrain-cite" || !/^\d+\.\d+\.\d+$/.test(version))
     throw new Error("Unexpected package/version");
   const names = [`${name}-${version}.tgz`, "index.html"].sort();
   const actual = (await readdir(directory)).filter((entry) => entry !== "SHA256SUMS").sort();

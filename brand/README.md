@@ -1,6 +1,6 @@
 # Siftgrain Cite
 
-A citation studio in the Siftgrain family. Cite is the displayed product name; the `claim-review` package and packet namespace remain compatible identifiers. The repository is now `alawein/siftgrain-cite`. Voice: "Every judgment needs a passage."
+A citation studio in the Siftgrain family. Cite is the displayed product name and `siftgrain-cite` is the package name; the `claim-review` packet namespace remains a compatible identifier. The repository is now `alawein/siftgrain-cite`. Voice: "Every judgment needs a passage."
 
 The primary user is a RAG evaluation owner who needs to review supplied answers against exact retrieved passages, retain disagreements and share a portable record without uploading source material. Import LangChain/LangSmith-shaped local trace JSON/JSONL, review the keyboard queue, merge independently exported packets and export the native packet or analysis labels.
 

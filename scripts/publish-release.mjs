@@ -17,12 +17,12 @@ import {
 
 const version = JSON.parse(await readFile("package.json", "utf8")).version;
 const directory = "release-assets";
-await verifyInventory(directory, "claim-review", version);
-const name = `claim-review-${version}.tgz`;
+await verifyInventory(directory, "siftgrain-cite", version);
+const name = `siftgrain-cite-${version}.tgz`;
 const local = await readFile(join(directory, name));
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const sha512 = createHash("sha512").update(local).digest("hex");
-const registryUrl = `https://registry.npmjs.org/claim-review/${version}`;
+const registryUrl = `https://registry.npmjs.org/siftgrain-cite/${version}`;
 async function getMetadata() {
   const response = await globalThis.fetch(registryUrl);
   if (![200, 404].includes(response.status)) registryDecision(response.status);
@@ -92,7 +92,7 @@ try {
     "npm",
     [
       "install",
-      `claim-review@${version}`,
+      `siftgrain-cite@${version}`,
       "--ignore-scripts",
       "--registry=https://registry.npmjs.org",
     ],

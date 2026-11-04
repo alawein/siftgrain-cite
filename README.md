@@ -43,7 +43,7 @@ npm run test:browser
 
 `check:all` runs lint, formatting, type checks, unit tests, build, schema validation, and package checks.
 `test:browser` runs the configured Chromium, Firefox, and WebKit projects.
-The npm package remains named `claim-review`.
+The npm package is named `siftgrain-cite`; a new name needs a one-time trusted-publisher bootstrap before the release workflow can publish it (see [first publication](docs/migration.md#first-publication)).
 
 ## Docs index
 
