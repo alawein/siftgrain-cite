@@ -1,5 +1,5 @@
 {
-  "name": "claim-review",
+  "name": "siftgrain-cite",
   "version": "0.3.2",
   "description": "Review citations with exact spans and explicit human rationales.",
   "license": "MIT",

@@ -68,7 +68,7 @@ test("new publication verifies destination bytes and unknown access never publis
 test("npm provenance policy binds subject, workflow, source, tag and hosted builder", () => {
   const source = "a".repeat(40);
   const statement = {
-    subject: [{ name: "pkg:npm/claim-review@0.3.1", digest: { sha512: "digest" } }],
+    subject: [{ name: "pkg:npm/siftgrain-cite@0.3.1", digest: { sha512: "digest" } }],
     predicate: {
       buildDefinition: {
         buildType: "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",

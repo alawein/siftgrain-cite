@@ -24,8 +24,8 @@ export function checkPack(packJson) {
     : packJson &&
         typeof packJson === "object" &&
         Object.keys(packJson).length === 1 &&
-        Object.hasOwn(packJson, "claim-review")
-      ? [packJson["claim-review"]]
+        Object.hasOwn(packJson, "siftgrain-cite")
+      ? [packJson["siftgrain-cite"]]
       : [];
   if (
     records.length !== 1 ||

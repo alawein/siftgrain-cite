@@ -40,7 +40,7 @@ jobs:
           mkdir release-assets
           npm pack --ignore-scripts --pack-destination release-assets
           cp dist/index.html release-assets/index.html
-          node scripts/verify-release-artifacts.mjs create release-assets claim-review "${GITHUB_REF_NAME#v}"
+          node scripts/verify-release-artifacts.mjs create release-assets siftgrain-cite "${GITHUB_REF_NAME#v}"
       - name: Retain successful build independently of publication
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
@@ -51,7 +51,7 @@ jobs:
       - uses: actions/attest-build-provenance@8beda2b7ed98355c0e97c0a63bec38ae472e66c4 # v4
         with:
           subject-path: |
-            release-assets/claim-review-*.tgz
+            release-assets/siftgrain-cite-*.tgz
             release-assets/index.html
       - name: Verify exact hosted build identity
         env:

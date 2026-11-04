@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Rename the npm package to `siftgrain-cite`. The packet namespace, schema
+  identifiers, draft storage key and export filenames are unchanged for
+  compatibility; consumers installing the old package name must switch.
+
 ## 0.3.2 (GitHub published; npm authentication pending)
 
 - Canonical run 37828847596 passed 96 unit, 10 Python and 48 browser tests,

@@ -46,7 +46,7 @@ export function verifyProvenanceStatement(statement, sha512, version, sourceComm
   const dependencies = definition?.resolvedDependencies;
   if (
     subject?.length !== 1 ||
-    subject[0].name !== `pkg:npm/claim-review@${version}` ||
+    subject[0].name !== `pkg:npm/siftgrain-cite@${version}` ||
     subject[0].digest?.sha512 !== sha512 ||
     definition?.buildType !==
       "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1" ||
