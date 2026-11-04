@@ -13,6 +13,28 @@ release-workflow repository guard use that repository name. Read back the native
 npm trusted publisher binding against `alawein/siftgrain-cite`; local metadata
 does not prove that registry configuration changed.
 
+## First publication
+
+A new package name must exist before npm can hold a trusted publisher, so
+`siftgrain-cite` needs one owner-authorized publish outside the release
+workflow. From a temporary directory whose `package.json` declares the package
+name and a separate bootstrap version such as `0.0.0-bootstrap.0`, publish with
+a granular access token and interactive 2FA, then bind the workflow:
+
+```sh
+npm publish . --access public --tag bootstrap
+npm trust github siftgrain-cite --repo alawein/siftgrain-cite --file release.yml
+```
+
+Read the binding back after it is created. The bootstrap does not use the
+release version: npm versions are immutable, and `scripts/publish-release.mjs`
+requires npm provenance bound to this release workflow, which a manual publish
+cannot produce. If a maintainer bootstraps the release version anyway, its
+published bytes must match the local tarball the script downloads and compares,
+and the workflow still rejects the version because its provenance is not from
+the workflow. Once the binding exists, a tag release publishes the release
+version through OIDC and moves `latest`.
+
 Preferences use siftgrain-viewer (theme only; older look preferences are ignored). Drafts retain claim-review.draft.v1 and require explicit opt-in. No automatic restore. Merge right-hand novel history takes append precedence, with labels self-reported. Export both original reviewer packets before merging if you need independently frozen inputs.
 
 ## Repository and distribution identities
