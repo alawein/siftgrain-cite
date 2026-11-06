@@ -10,9 +10,19 @@ Screenshot inputs are scripted and synthetic; all four claims are unreviewed.
 
 ## Use
 
+Open the [browser demo](https://alawein.github.io/siftgrain-cite/) and follow the
+[first review walkthrough](docs/guide.md#your-first-review) with the built-in synthetic example.
+You can review a claim, export the packet, and reopen your work without an account.
+
+To run a local copy:
+
 Use Node 22.12 or newer in a local checkout.
-Run `npm ci`.
-Run `npm run build`.
+
+```sh
+npm ci
+npm run build
+```
+
 Open `dist/index.html` in your browser.
 
 Follow the [user guide](docs/guide.md) to create or import a packet, review claims, and export your work.
@@ -51,6 +61,14 @@ The npm package is named `siftgrain-cite`; a new name needs a one-time trusted-p
 - [Packet contract](docs/contract.md), [adapter contracts](docs/adapters.md), and [interoperability](docs/interoperability.md)
 - [Evaluation](docs/evaluation.md), [benchmark results](docs/results.md), and [performance](docs/performance.md)
 - [Research](docs/research.md), [study protocol](docs/study-protocol.md), [bounded usefulness](docs/usefulness.md), and [provenance](docs/provenance.md)
+
+## Contribute
+
+Useful bug reports include a minimal synthetic packet, browser version, steps to reproduce,
+and the expected and observed result. Remove confidential text before sharing an export.
+For changes and private vulnerability reports, follow the shared
+[contribution guide](https://github.com/alawein/.github/blob/main/CONTRIBUTING.md) and
+[security policy](https://github.com/alawein/.github/blob/main/SECURITY.md).
 
 ## License
 

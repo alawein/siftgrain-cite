@@ -4,9 +4,43 @@ A packet holds source text, claims, and review history. A claim names candidate 
 
 ## Open the page
 
+Open the [browser demo](https://alawein.github.io/siftgrain-cite/) to try the built-in examples.
+
 With Node 22.12 or newer, run `npm ci` and `npm run build` in a local checkout, then open `dist/index.html` in your browser. The built page works locally without a server.
 
 Use **Appearance** to choose **Dark** or **Light**. Choose **Pause motion** to stop motion.
+
+## Your first review
+
+This walkthrough uses the existing synthetic refund example. Its inputs and worked judgments
+are scripted practice material, not observations of a real refund or an accuracy benchmark.
+Export any current work before replacing it with an example.
+
+1. Choose **Load acceptance example**. The packet starts with four unreviewed claims.
+2. In **Claim**, choose **The refund amount was USD 120.** In **Citation**, choose
+   **Synthetic refund case 1042**.
+3. In **Source text**, select **the refund amount was USD 100.** Choose **Use selected span**
+   and check **Selected passage**. You can also enter **Span start** `176` and **Span end** `206`;
+   these UTF-16 offsets apply only to this unchanged built-in source.
+4. Choose **Contradicted** as the **Verdict**. For **Rationale**, write
+   `The source records USD 100, which contradicts the claimed USD 120.` Enter a
+   **Reviewer label** of your choice, then choose **Save review**.
+5. Check **Review history** for your judgment, rationale, and passage. You have reviewed one
+   claim and citation pair; the remaining three claims still need review.
+6. Choose **Export packet** and confirm that the browser saved the JSON file. **Save review**
+   keeps work in memory; the exported native packet is your portable copy.
+7. On a fresh visit, choose **Import packet** and open that export. Confirm that your review
+   and rationale remain in **Review history** before continuing.
+
+The expected outcome is one recorded human judgment with an exact evidence span and a
+resumable export. Cite checks the packet's structure, source hashes, and span consistency;
+you decide whether the passage supports or contradicts the claim.
+
+The other claims illustrate different evidence limits: an observation can be too old for
+the requested acceptance time, and a state already present at baseline does not establish
+that the agent caused a change. Read the timestamps and baseline before recording a verdict.
+**Load synthetic worked judgments** provides separate scripted examples for comparison,
+not a score for your answers.
 
 ## Make or load a packet
 
