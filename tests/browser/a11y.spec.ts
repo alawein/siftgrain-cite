@@ -22,9 +22,20 @@ for (const theme of ["dark", "light"]) {
     await expect(page.locator("html")).toHaveCSS("color-scheme", theme);
     for (const selector of [
       ".skip",
+      ".suite-home",
+      ".suite-nav a[href$='siftgrain-audit/']",
+      ".suite-nav a[href$='siftgrain-state/']",
+      ".suite-nav [aria-current='page']",
+      ".suite-nav a[href$='docs/guide.md']",
+      "#builder-toggle",
+      "#import",
       "#theme",
       "#motion-pause",
-      "#import",
+      "#draft-save",
+      "#draft-restore",
+      "#draft-clear",
+      "#trace-import",
+      "#merge-import",
       "#example",
       "#acceptance-example",
     ]) {
@@ -32,14 +43,13 @@ for (const theme of ["dark", "light"]) {
     }
     await page.keyboard.press("Enter");
     await expect(page.locator("#status")).toContainText("unreviewed");
+    await expect(page.locator("#claim")).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(page.locator("#next-item")).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(page.locator("#previous-item")).toBeFocused();
+    await page.locator("#claim").focus();
     for (const selector of [
-      "#builder-toggle",
-      "summary",
-      "#trace-import",
-      "#merge-import",
-      "#previous-item",
-      "#next-item",
-      "#claim",
       "#citation",
       "#source-text",
       "#selection",
@@ -49,6 +59,8 @@ for (const theme of ["dark", "light"]) {
       "#rationale",
       "#reviewer",
       '#review-form button[type="submit"]',
+      "#export",
+      "#other-exports > summary",
     ]) {
       await tabTo(page, page.locator(selector));
     }

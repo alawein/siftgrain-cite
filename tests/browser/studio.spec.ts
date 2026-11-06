@@ -118,6 +118,7 @@ test.describe("paste-first builder", () => {
     await page.getByLabel("Reviewer label").fill("Reviewer");
     await page.getByRole("button", { name: "Save review", exact: true }).click();
     await expect(page.locator("#history p")).toHaveCount(5);
+    await page.getByRole("button", { name: "New packet", exact: true }).click();
     await builder.locator('[name="source-id"]').fill("renamed-source");
     await expect(builder.locator('[name="claim-citations"]')).toHaveValue("source-1");
     await page.getByRole("button", { name: "Use packet", exact: true }).click();
@@ -297,6 +298,7 @@ test("theme storage failure and reduced motion preserve offline queue and label 
   await expect(page.locator("#claim")).not.toHaveValue("c1");
   await expect(page.locator("#agreement")).toContainText("self-reported");
   const downloaded = page.waitForEvent("download");
+  await page.getByText("Other export formats", { exact: true }).click();
   await page.getByRole("button", { name: "Export CSV", exact: true }).click();
   expect((await downloaded).suggestedFilename()).toBe("claim-review.csv");
 });

@@ -170,6 +170,7 @@ test("standalone strict CSP blocks network and active imported text, exports W3C
     }),
   ).toBe(true);
   const download = page.waitForEvent("download");
+  await page.getByText("Other export formats", { exact: true }).click();
   await page.getByRole("button", { name: "Export W3C JSON-LD" }).click();
   const exported = JSON.parse(await readFile((await (await download).path())!, "utf8"));
   expect(exported.items[0].target.selector).toEqual([
