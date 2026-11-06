@@ -13,6 +13,8 @@ Screenshot inputs are scripted and synthetic; all four claims are unreviewed.
 Open the [browser demo](https://alawein.github.io/siftgrain-cite/) and follow the
 [first review walkthrough](docs/guide.md#your-first-review) with the built-in synthetic example.
 You can review a claim, export the packet, and reopen your work without an account.
+To review your own evidence, choose **New packet**, paste one source and one claim,
+then choose **Use packet**. Export the native packet to save and resume your review.
 
 To run a local copy:
 
