@@ -1,5 +1,21 @@
 # User guide
 
+## Review your own evidence
+
+Choose **New packet** in the first screen. Paste **Source text** and **Claim text**,
+then choose **Use packet**. The review workspace opens with the claim focused.
+Select the source passage, record a verdict and rationale with your reviewer label,
+and choose **Save review**. **Export packet** saves a portable copy; **Import packet**
+reopens it on a fresh visit with its review history.
+
+The builder supplies editable IDs and a source title. You do not need to prepare a
+packet file or load an example for this one-source workflow. Invalid imports keep
+the text you are preparing. Device drafts remain off until explicitly enabled.
+
+The top navigation links to Audit for evaluation coverage and State for supplied
+outcome evidence. Each tool works independently. Neither replaces a human citation
+judgment. Additional exports are under **Other export formats** after a packet is loaded.
+
 A packet holds source text, claims, and review history. A claim names candidate sources through citations; reviewing a claim and citation records your judgment about one exact source passage. A reviewer label is self-reported, not a verified identity.
 
 ## Open the page
@@ -48,7 +64,7 @@ Choose one starting point:
 
 - **New packet** opens the builder. For one source and one claim, paste **Source text** and **Claim text**, then choose **Use packet**. Source and claim IDs and the source title have editable defaults. Each new claim starts with that source's citation only when the builder contains one source and its ID is nonblank. Use **Add source** or **Add claim** for more rows. With multiple sources, enter the intended source IDs in **Citations (comma or newline separated)** for each new claim. Changing a source ID does not change existing citations: update those citations too, or validation will reject the packet and keep your current work. **Download packet file** saves the builder's packet without adding review judgments. Source hashes are computed in the page; pasted CRLF line breaks arrive as LF in builder text. After reviewing, **Export packet** saves the native packet for later **Import packet** and resumption.
 - **Import packet** loads native packet JSON. The packet must be valid UTF-8 without a byte-order mark and no larger than 5 MiB. Older version 1 packets migrate to version 2. Invalid imports keep current work. If replacement would discard unsaved work, choose **Replace current packet** or **Keep current work**.
-- **Load synthetic example** loads a practice packet. **Load acceptance example** loads four unreviewed claims about synthetic refund evidence; follow the **Acceptance review guide** on the page. **Synthetic worked judgments** contains **Load synthetic worked judgments**, a separate packet of scripted judgments. These examples do not grade your answers. If you have unsaved work, click the same load button again only when you want to replace it.
+- **Load synthetic example** loads a practice packet. **Load acceptance example** loads four unreviewed claims about synthetic refund evidence; follow the walkthrough above. **Synthetic worked judgments** contains **Load synthetic worked judgments**, a separate packet of scripted judgments. These examples do not grade your answers. If you have unsaved work, click the same load button again only when you want to replace it.
 - **Import RAG trace JSON or JSONL** loads the supported local trace shapes in the [adapter contracts](adapters.md). Export current work first. Supplied documents become candidate citations; their actual use in generating the answer is unverified.
 
 ## Review a claim

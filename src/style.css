@@ -272,7 +272,7 @@ body {
 main {
   max-width: 1200px;
   margin: auto;
-  padding: clamp(1rem, 3vw, 3rem);
+  padding: clamp(1rem, 3vw, 2rem);
 }
 h1,
 h2,
@@ -281,12 +281,13 @@ h3 {
 }
 h1 {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 5vw, 3.8rem);
-  max-width: 19ch;
+  font-size: clamp(1.8rem, 3.3vw, 2.8rem);
+  max-width: 30ch;
+  margin: 1rem 3rem 1rem 0;
 }
 .hero {
   position: relative;
-  padding: var(--space-8);
+  padding: var(--space-6);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -299,8 +300,82 @@ h1 {
 }
 #brand-mark {
   display: block;
-  width: 4rem;
-  height: 4rem;
+  position: absolute;
+  top: var(--space-6);
+  right: var(--space-6);
+  width: 2.5rem;
+  height: 2.5rem;
+}
+.hero .suite {
+  margin: 0 3rem 0 0;
+  font-size: 0.75rem;
+}
+.hero > p:not(.suite) {
+  max-width: 68ch;
+}
+.entry-actions {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  gap: var(--space-4);
+  margin: var(--space-6) 0 var(--space-3);
+}
+.entry-actions button {
+  margin: 0;
+}
+.packet-import {
+  min-width: 0;
+  max-width: 28rem;
+}
+.packet-import label {
+  margin: 0 0 var(--space-1);
+  font-size: 0.85rem;
+}
+.packet-import input {
+  font-size: 0.85rem;
+  min-height: 44px;
+  padding: 8px;
+}
+.suite-nav {
+  margin: 0 0 var(--space-4);
+  border-bottom: 1px solid var(--line);
+  gap: var(--space-3);
+  font-size: 0.85rem;
+}
+.suite-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 4px;
+  text-underline-offset: 4px;
+}
+.suite-nav .suite-home {
+  margin-right: auto;
+  font-family: var(--font-mono);
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+.suite-nav [aria-current="page"] {
+  text-decoration-thickness: 3px;
+}
+.viewer-settings {
+  font-size: 0.8rem;
+  margin: var(--space-3) 0;
+}
+.viewer-settings button,
+.viewer-settings select {
+  font-size: inherit;
+  padding: 8px;
+}
+.entry-limit {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.secondary-entry {
+  padding: var(--space-6);
+  margin: var(--space-6) 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
 }
 nav {
   display: flex;
@@ -416,6 +491,21 @@ a {
   nav {
     align-items: stretch;
   }
+  .entry-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .packet-import {
+    max-width: none;
+  }
+  .suite-nav {
+    gap: var(--space-2);
+  }
+  #brand-mark {
+    top: var(--space-4);
+    right: var(--space-4);
+    width: 2rem;
+    height: 2rem;
+  }
 }
 
 /* One filled primary action per workspace. */
@@ -427,7 +517,10 @@ button {
 button:hover {
   background: var(--surface);
 }
-#review-form button[type="submit"] {
+#review-form button[type="submit"],
+#builder-toggle,
+#builder-use,
+#export {
   background: var(--accent);
   color: var(--on-accent);
   border-color: var(--accent);

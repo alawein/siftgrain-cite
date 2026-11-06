@@ -9,6 +9,13 @@ import { setupViewer } from "./ui/viewer.js";
 
 setupViewer();
 const store = createStore();
+const workbench = element("review-workbench");
+store.subscribe(() => {
+  workbench.hidden = store.get() === null;
+  document.querySelector<HTMLAnchorElement>(".skip")!.href = workbench.hidden
+    ? "#entry"
+    : "#review-form";
+});
 const draftSave = element<HTMLInputElement>("draft-save");
 draftSave.checked = false;
 const review = mountReview(store, persistDraft);
@@ -17,8 +24,13 @@ mountBuilder(store, afterPacketApplied);
 
 function afterPacketApplied(note: string): void {
   review.refresh();
+  element("builder").hidden = true;
+  const builderToggle = element("builder-toggle");
+  builderToggle.setAttribute("aria-expanded", "false");
+  builderToggle.textContent = "New packet";
   setStatus(true, note);
   persistDraft();
+  element("claim").focus();
 }
 function persistDraft(): void {
   if (draftSave.checked && !saveDraft(store.get())) {

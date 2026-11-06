@@ -14,71 +14,55 @@
   </head>
   <body>
     <main>
-      <a class="skip" href="#review-form" tabindex="0">Skip to review form</a>
-      <p class="eyebrow">EXACT PASSAGES / EXPLICIT JUDGMENTS</p>
-      <header class="hero">
+      <a class="skip" href="#entry" tabindex="0">Skip to main content</a>
+      <nav class="suite-nav" aria-label="Siftgrain tools">
+        <a class="suite-home" href="#entry" tabindex="0">SIFTGRAIN</a>
+        <a href="https://alawein.github.io/siftgrain-audit/" tabindex="0">Audit</a>
+        <a href="https://alawein.github.io/siftgrain-state/" tabindex="0">State</a>
+        <a href="#entry" aria-current="page" tabindex="0">Cite</a>
+        <a href="https://github.com/alawein/siftgrain-cite/blob/main/docs/guide.md" tabindex="0"
+          >Guide</a
+        >
+      </nav>
+      <header class="hero" id="entry" tabindex="-1">
         <svg id="brand-mark" viewBox="0 0 96 96" role="img" aria-label="Siftgrain Cite">
           <rect width="96" height="96" rx="18" fill="var(--surface)" />
           <path d="M24 22h18v10H34v32h8v10H24zm48 0H54v10h8v32h-8v10h18z" fill="var(--accent)" />
           <path d="M42 39h12v6H42zm0 12h12v6H42z" fill="var(--ink)" />
           <path d="m37 78 11-8 11 8-11 8z" fill="var(--pass)" />
         </svg>
-        <p class="suite">SIFTGRAIN / CITE</p>
-        <h1>Every judgment needs a passage.</h1>
-        <p>Review citations, with evidence you can carry.</p>
+        <p class="suite">CITE / LOCAL HUMAN REVIEW</p>
+        <h1>Check a claim against its source.</h1>
+        <p>
+          Bring your own text. Select the passage, record your judgment, and keep a portable review.
+        </p>
+        <div class="entry-actions">
+          <button id="builder-toggle" type="button" aria-expanded="false" aria-controls="builder">
+            New packet
+          </button>
+          <div class="packet-import">
+            <label for="import">Import packet</label
+            ><input id="import" name="import" type="file" accept=".json,application/json" />
+          </div>
+        </div>
+        <p class="metadata">Local processing. Export to keep work. No account or model judge.</p>
       </header>
-      <nav aria-label="Viewer settings">
+      <nav class="viewer-settings" aria-label="Viewer settings">
         <label for="theme">Appearance</label
         ><select id="theme">
           <option value="dark">Dark</option>
           <option value="light">Light</option></select
         ><button id="motion-pause" type="button" aria-pressed="false">Pause motion</button>
       </nav>
-      <p>Human citation judgments. Hash checks do not prove truth or authorship.</p>
-      <p>Local processing. Export to keep work; closing this page loses unsaved reviews.</p>
-      <label for="import">Import packet</label
-      ><input id="import" name="import" type="file" accept=".json,application/json" />
+      <p class="entry-limit">
+        Human judgments stay separate from hash checks. Neither proves source truth or authorship.
+      </p>
       <section id="import-confirmation" aria-label="Confirm packet replacement" hidden>
         <p>Importing this packet will replace unsaved work. Choose whether to continue.</p>
         <div class="packet-actions">
           <button id="import-replace" type="button">Replace current packet</button>
           <button id="import-keep" type="button">Keep current work</button>
         </div>
-      </section>
-      <section class="examples" aria-labelledby="examples-heading">
-        <h2 id="examples-heading">Try Agent Acceptance</h2>
-        <p>
-          Review four claims about one synthetic refund: a recent state observation, a conflicting
-          amount, an old completion observation, and a baseline that was already true. Select the
-          evidence and supply your own judgment.
-        </p>
-        <div class="packet-actions">
-          <button id="example" type="button">Load synthetic example</button>
-          <button id="acceptance-example" type="button">Load acceptance example</button>
-          <button id="builder-toggle" type="button" aria-expanded="false" aria-controls="builder">
-            New packet
-          </button>
-        </div>
-        <section aria-labelledby="acceptance-guide-heading">
-          <h3 id="acceptance-guide-heading">Acceptance review guide</h3>
-          <ol>
-            <li>Select evidence. Match each claim to exact source spans.</li>
-            <li>
-              Make a human judgment. Choose a verdict and record your rationale. Older observations
-              need a freshness judgment; unknown evidence stays unverifiable.
-            </li>
-            <li>Export packet. Save the native packet to preserve review history.</li>
-            <li>Reimport and resume. Use Import packet to continue the same review.</li>
-          </ol>
-        </section>
-        <details>
-          <summary>Synthetic worked judgments</summary>
-          <p>
-            This optional packet contains four synthetic worked judgments. It replaces the current
-            packet after confirmation if you have unsaved work. The app does not grade your answers.
-          </p>
-          <button id="acceptance-worked" type="button">Load synthetic worked judgments</button>
-        </details>
       </section>
       <p id="status" role="status" aria-live="polite" tabindex="-1"></p>
       <section id="builder" hidden aria-label="Packet builder">
@@ -103,118 +87,123 @@
         <button id="builder-use" type="button">Use packet</button>
         <button id="builder-download" type="button">Download packet file</button>
       </section>
-      <section aria-label="Trace and reviewer imports">
-        <h2>Bring your evidence</h2>
-        <label for="trace-import">Import RAG trace JSON or JSONL</label
-        ><input id="trace-import" type="file" accept=".json,.jsonl,application/json" /><label
-          for="merge-import"
-          >Merge reviewer packet</label
-        ><input id="merge-import" type="file" accept=".json,application/json" />
-        <p id="agreement" role="status">
-          Agreement requires multiple self-reported reviewer labels.
+      <section id="review-workbench" aria-label="Review workspace" hidden>
+        <form id="review-form" tabindex="-1">
+          <h2>Review a claim</h2>
+          <div class="queue">
+            <button id="previous-item" type="button">Previous item</button
+            ><button id="next-item" type="button">Next unreviewed</button>
+            <p>Queue: Alt+J next, Alt+K previous. Focus stays in the review workspace.</p>
+          </div>
+          <p id="queue-state" role="status"></p>
+          <p id="packet-summary">Import, build, or choose an example to begin.</p>
+          <label for="claim">Claim</label
+          ><select id="claim" name="claim" required></select>
+          <p id="claim-text" dir="auto"></p>
+          <div class="review-workspace">
+            <section id="source-panel" aria-labelledby="source-heading">
+              <h3 id="source-heading">1. Select source evidence</h3>
+              <label for="citation">Citation</label
+              ><select id="citation" name="citation" required></select>
+              <p id="source-identity" class="metadata">No cited source</p>
+              <label for="source-text">Source text</label
+              ><textarea
+                id="source-text"
+                name="source-text"
+                readonly
+                dir="auto"
+                rows="10"
+                aria-describedby="span-help"
+              ></textarea>
+              <button id="selection" type="button">Use selected span</button>
+              <div class="span-controls">
+                <div>
+                  <label for="start">Span start</label
+                  ><input
+                    id="start"
+                    name="start"
+                    type="number"
+                    min="0"
+                    required
+                    aria-describedby="span-help"
+                  />
+                </div>
+                <div>
+                  <label for="end">Span end</label
+                  ><input
+                    id="end"
+                    name="end"
+                    type="number"
+                    min="1"
+                    required
+                    aria-describedby="span-help"
+                  />
+                </div>
+              </div>
+              <p id="span-help" class="metadata">
+                Select text above or enter exact UTF-16 offsets.
+              </p>
+              <p class="excerpt-label">Selected passage</p>
+              <p id="excerpt" dir="auto" aria-live="polite"></p>
+            </section>
+            <section id="judgment-panel" aria-labelledby="judgment-heading">
+              <h3 id="judgment-heading">2. Record a human judgment</h3>
+              <p id="review-state" dir="auto" aria-live="polite">
+                Your saved judgment for the selected claim and citation appears here.
+              </p>
+              <label for="verdict">Verdict</label
+              ><select id="verdict" name="verdict">
+                <option value="supported">Supported</option>
+                <option value="partial">Partial</option>
+                <option value="contradicted">Contradicted</option>
+                <option value="unverifiable">Unverifiable</option>
+              </select>
+              <label for="rationale">Rationale</label
+              ><textarea
+                id="rationale"
+                name="rationale"
+                rows="5"
+                maxlength="4000"
+                required
+              ></textarea>
+              <label for="reviewer">Reviewer label</label
+              ><input id="reviewer" name="reviewer" maxlength="200" autocomplete="off" required />
+              <p class="metadata">
+                Reviewer labels are self-reported. Saving does not grade the claim.
+              </p>
+              <p class="metadata">
+                Freshness is separate from source integrity. Judge whether an old observation is
+                recent enough for this claim; a current source hash does not make an old observation
+                fresh. Hash-stale means the source text changed; the prior review remains history
+                and cannot quote the changed text. Unknown evidence stays unverifiable.
+              </p>
+              <button type="submit">Save review</button>
+            </section>
+          </div>
+        </form>
+        <button id="export" type="button">Export packet</button>
+        <p class="metadata">
+          Save the native packet to reopen this review and preserve its history.
         </p>
+        <details id="other-exports">
+          <summary>Other export formats</summary>
+          <button id="export-w3c" type="button">Export W3C JSON-LD</button>
+          <button id="export-ais" type="button">Export AIS labels</button
+          ><button id="export-alce" type="button">Export ALCE labels</button
+          ><button id="export-csv" type="button">Export CSV</button>
+          <p class="metadata">
+            Export packet is the native resumable format and preserves review history. W3C JSON-LD,
+            AIS, ALCE, and CSV are separate exports, not replacements for the native packet.
+          </p>
+        </details>
+        <h2>Review history</h2>
+        <p>
+          Latest means most recently appended for a claim/citation pair. Stale reviews keep their
+          rationale but cannot quote the changed source.
+        </p>
+        <section aria-label="Review history" id="history"></section>
       </section>
-      <form id="review-form">
-        <h2>Review a claim</h2>
-        <div class="queue">
-          <button id="previous-item" type="button">Previous item</button
-          ><button id="next-item" type="button">Next unreviewed</button>
-          <p>Queue: Alt+J next, Alt+K previous. Focus stays in the review workspace.</p>
-        </div>
-        <p id="queue-state" role="status"></p>
-        <p id="packet-summary">Import, build, or choose an example to begin.</p>
-        <label for="claim">Claim</label
-        ><select id="claim" name="claim" required></select>
-        <p id="claim-text" dir="auto"></p>
-        <div class="review-workspace">
-          <section id="source-panel" aria-labelledby="source-heading">
-            <h3 id="source-heading">1. Select source evidence</h3>
-            <label for="citation">Citation</label
-            ><select id="citation" name="citation" required></select>
-            <p id="source-identity" class="metadata">No cited source</p>
-            <label for="source-text">Source text</label
-            ><textarea
-              id="source-text"
-              name="source-text"
-              readonly
-              dir="auto"
-              rows="10"
-              aria-describedby="span-help"
-            ></textarea>
-            <button id="selection" type="button">Use selected span</button>
-            <div class="span-controls">
-              <div>
-                <label for="start">Span start</label
-                ><input
-                  id="start"
-                  name="start"
-                  type="number"
-                  min="0"
-                  required
-                  aria-describedby="span-help"
-                />
-              </div>
-              <div>
-                <label for="end">Span end</label
-                ><input
-                  id="end"
-                  name="end"
-                  type="number"
-                  min="1"
-                  required
-                  aria-describedby="span-help"
-                />
-              </div>
-            </div>
-            <p id="span-help" class="metadata">Select text above or enter exact UTF-16 offsets.</p>
-            <p class="excerpt-label">Selected passage</p>
-            <p id="excerpt" dir="auto" aria-live="polite"></p>
-          </section>
-          <section id="judgment-panel" aria-labelledby="judgment-heading">
-            <h3 id="judgment-heading">2. Record a human judgment</h3>
-            <p id="review-state" dir="auto" aria-live="polite">
-              Your saved judgment for the selected claim and citation appears here.
-            </p>
-            <label for="verdict">Verdict</label
-            ><select id="verdict" name="verdict">
-              <option value="supported">Supported</option>
-              <option value="partial">Partial</option>
-              <option value="contradicted">Contradicted</option>
-              <option value="unverifiable">Unverifiable</option>
-            </select>
-            <label for="rationale">Rationale</label
-            ><textarea
-              id="rationale"
-              name="rationale"
-              rows="5"
-              maxlength="4000"
-              required
-            ></textarea>
-            <label for="reviewer">Reviewer label</label
-            ><input id="reviewer" name="reviewer" maxlength="200" autocomplete="off" required />
-            <p class="metadata">
-              Reviewer labels are self-reported. Saving does not grade the claim.
-            </p>
-            <p class="metadata">
-              Freshness is separate from source integrity. Judge whether an old observation is
-              recent enough for this claim; a current source hash does not make an old observation
-              fresh. Hash-stale means the source text changed; the prior review remains history and
-              cannot quote the changed text. Unknown evidence stays unverifiable.
-            </p>
-            <button type="submit">Save review</button>
-          </section>
-        </div>
-      </form>
-      <button id="export" type="button">Export packet</button>
-      <button id="export-w3c" type="button">Export W3C JSON-LD</button>
-      <button id="export-ais" type="button">Export AIS labels</button
-      ><button id="export-alce" type="button">Export ALCE labels</button
-      ><button id="export-csv" type="button">Export CSV</button>
-      <p class="metadata">
-        Export packet is the native resumable format and preserves review history. W3C JSON-LD, AIS,
-        ALCE, and CSV are separate exports, not replacements for the native packet.
-      </p>
-      <section aria-label="Draft storage">
+      <section class="secondary-entry" aria-label="Draft storage">
         <h2>Optional device draft</h2>
         <label
           ><input id="draft-save" type="checkbox" autocomplete="off" />Save draft on this
@@ -227,12 +216,52 @@
         <button id="draft-restore" type="button">Restore saved draft</button>
         <button id="draft-clear" type="button">Clear saved draft</button>
       </section>
-      <h2>Review history</h2>
-      <p>
-        Latest means most recently appended for a claim/citation pair. Stale reviews keep their
-        rationale but cannot quote the changed source.
-      </p>
-      <section aria-label="Review history" id="history"></section>
+      <section class="secondary-entry" aria-label="Trace and reviewer imports">
+        <h2>Import existing evidence</h2>
+        <p>
+          Supported traces create unreviewed claims and candidate citations. They do not supply a
+          judgment.
+        </p>
+        <label for="trace-import">Import RAG trace JSON or JSONL</label
+        ><input id="trace-import" type="file" accept=".json,.jsonl,application/json" /><label
+          for="merge-import"
+          >Merge reviewer packet</label
+        ><input id="merge-import" type="file" accept=".json,application/json" />
+        <p id="agreement" role="status">
+          Agreement requires multiple self-reported reviewer labels.
+        </p>
+      </section>
+      <section class="examples secondary-entry" aria-labelledby="examples-heading">
+        <h2 id="examples-heading">Try a worked example</h2>
+        <p>
+          Start with a synthetic source and claims, or inspect the refund-agent example. Every
+          judgment needs a passage.
+        </p>
+        <div class="packet-actions">
+          <button id="example" type="button">Load synthetic example</button>
+          <button id="acceptance-example" type="button">Load acceptance example</button>
+        </div>
+        <section aria-labelledby="acceptance-guide-heading">
+          <h3 id="acceptance-guide-heading">Acceptance review guide</h3>
+          <ol>
+            <li>Select evidence. Match each claim to exact source spans.</li>
+            <li>
+              Make a human judgment. Choose a verdict and record your rationale. Older observations
+              need a freshness judgment; unknown evidence stays unverifiable.
+            </li>
+            <li>Export packet. Save the native packet to preserve review history.</li>
+            <li>Reimport and resume. Use Import packet to continue the same review.</li>
+          </ol>
+        </section>
+        <details>
+          <summary>Synthetic worked judgments</summary>
+          <p>
+            This optional packet contains four synthetic worked judgments. It replaces the current
+            packet after confirmation if you have unsaved work. The app does not grade your answers.
+          </p>
+          <button id="acceptance-worked" type="button">Load synthetic worked judgments</button>
+        </details>
+      </section>
     </main>
     <script id="app-script"></script>
   </body>

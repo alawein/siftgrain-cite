@@ -7,14 +7,14 @@ import { createHash } from "node:crypto";
 const expected = JSON.parse(await readFile("examples/expected.json", "utf8"));
 const input = await readFile("examples/packet.json", "utf8");
 
-test("header shows the Siftgrain Cite mark and unchanged tagline", async ({ page }) => {
+test("header shows the Siftgrain Cite mark and its source-review task", async ({ page }) => {
   await page.goto("./");
   const mark = page.locator("#brand-mark");
   await expect(mark).toBeVisible();
   await expect(mark).toHaveAttribute("role", "img");
   await expect(mark).toHaveAttribute("aria-label", "Siftgrain Cite");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Every judgment needs a passage.",
+    "Check a claim against its source.",
   );
 });
 
@@ -223,6 +223,12 @@ test("acceptance example starts unreviewed and carries human judgments through e
   expect(judgmentCopy).toContain("Freshness is separate from source integrity.");
   expect(judgmentCopy).toContain("a current source hash does not make an old observation fresh.");
   expect(judgmentCopy).toContain("Hash-stale means the source text changed");
+  await expect(
+    page.getByText("Save the native packet to reopen this review and preserve its history.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.getByText("Other export formats", { exact: true }).click();
   const exportCopy = (await page.locator("body").innerText()).replace(/\s+/g, " ");
   expect(exportCopy).toContain("Export packet is the native resumable format");
   expect(exportCopy).toContain(
@@ -843,25 +849,6 @@ test("four judgments export and reimport exactly, without input-driven requests"
 test("keyboard navigation saves and exports", async ({ page }) => {
   await page.goto("./");
   await importPacket(page);
-  await page.getByLabel("Import packet").press("Tab");
-  await expect(page.getByRole("button", { name: "Load synthetic example" })).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(
-    page.getByRole("button", { name: "Load acceptance example", exact: true }),
-  ).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: "New packet" })).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(page.locator("summary")).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Import RAG trace JSON or JSONL")).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Merge reviewer packet")).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: "Previous item", exact: true })).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: "Next unreviewed", exact: true })).toBeFocused();
-  await page.keyboard.press("Tab");
   await expect(page.getByLabel("Claim", { exact: true })).toBeFocused();
   await page.keyboard.press("Tab"); // citation
   await page.keyboard.press("Tab"); // readonly source

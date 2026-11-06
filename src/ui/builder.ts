@@ -134,6 +134,11 @@ export function mountBuilder(store: Store, onApplied: (note: string) => void): v
       addSourceRow();
       addClaimRow();
     }
+    if (open) {
+      const source = builderSources.querySelector<HTMLTextAreaElement>("[name='source-text']");
+      source?.focus();
+      source?.scrollIntoView({ block: "center" });
+    }
   });
   element("builder-add-source").addEventListener("click", addSourceRow);
   element("builder-add-claim").addEventListener("click", addClaimRow);
