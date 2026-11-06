@@ -15,6 +15,17 @@ export function mountBuilder(store: Store, onApplied: (note: string) => void): v
 
   // Packet builder: creation-only mode alongside import. All validation flows through
   // parsePacket via buildPacket, so builder packets obey the same caps and hashes.
+  function nextRowId(container: HTMLElement, prefix: "source" | "claim"): string {
+    const used = new Set(
+      Array.from(
+        container.querySelectorAll<HTMLInputElement>(`[name='${prefix}-id']`),
+        (control) => control.value,
+      ),
+    );
+    let number = container.childElementCount + 1;
+    while (used.has(`${prefix}-${number}`)) number++;
+    return `${prefix}-${number}`;
+  }
   function addSourceRow(): void {
     const group = document.createElement("fieldset");
     const legend = document.createElement("legend");
@@ -25,10 +36,12 @@ export function mountBuilder(store: Store, onApplied: (note: string) => void): v
     id.maxLength = 200;
     id.name = "source-id";
     id.spellcheck = false;
+    id.value = nextRowId(builderSources, "source");
     const title = document.createElement("input");
     title.placeholder = "Synthetic refund policy…";
     title.maxLength = 1000;
     title.name = "source-title";
+    title.value = `Source ${builderSources.childElementCount + 1}`;
     const text = document.createElement("textarea");
     text.rows = 4;
     text.placeholder = "Paste exact source text…";
@@ -62,6 +75,7 @@ export function mountBuilder(store: Store, onApplied: (note: string) => void): v
     id.maxLength = 200;
     id.name = "claim-id";
     id.spellcheck = false;
+    id.value = nextRowId(builderClaims, "claim");
     const text = document.createElement("input");
     text.placeholder = "State the claim in one sentence…";
     text.maxLength = 10000;
@@ -71,6 +85,8 @@ export function mountBuilder(store: Store, onApplied: (note: string) => void): v
     cite.placeholder = "policy-1, policy-2…";
     cite.name = "claim-citations";
     cite.spellcheck = false;
+    const sources = builderSources.querySelectorAll<HTMLInputElement>("[name='source-id']");
+    if (sources.length === 1 && sources[0].value.trim()) cite.value = sources[0].value;
     builderField(group, "Claim id", id);
     builderField(group, "Claim text", text);
     builderField(group, "Citations (comma or newline separated)", cite);

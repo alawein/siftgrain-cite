@@ -1,8 +1,143 @@
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 
 const reviewedPacket = JSON.parse(await readFile("examples/reviewed.json", "utf8"));
 const byteMarker = "INVALID_UTF8_SENTINEL";
+
+test.describe("paste-first builder", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "New packet", exact: true }).click();
+  });
+
+  test("two pasted texts produce a reviewable packet and portable exact evidence", async ({
+    page,
+  }) => {
+    const source = "First line.\nThe amount is USD 100. 😀";
+    const claim = "The amount is USD 120.";
+    const builder = page.locator("#builder");
+    await builder.locator('[name="source-text"]').fill(source);
+    await builder.locator('[name="claim-text"]').fill(claim);
+    await page.getByRole("button", { name: "Use packet", exact: true }).click();
+    await expect(page.locator("#builder-status")).toContainText("Packet ready");
+    await expect(page.locator("#claim-text")).toHaveText(claim);
+    await expect(page.locator("#history p")).toHaveCount(0);
+    const nativePacket = async () => {
+      const pending = page.waitForEvent("download");
+      await page.getByRole("button", { name: "Export packet", exact: true }).click();
+      return JSON.parse(await readFile((await (await pending).path())!, "utf8"));
+    };
+    const initial = await nativePacket();
+    expect(initial.sources).toHaveLength(1);
+    expect(initial.sources[0]).toMatchObject({
+      id: "source-1",
+      title: "Source 1",
+      text: source,
+      sha256: createHash("sha256").update(source).digest("hex"),
+    });
+    expect(initial.claims).toEqual([{ id: "claim-1", text: claim, citation_ids: ["source-1"] }]);
+    expect(initial.reviews).toEqual([]);
+    const passage = "The amount is USD 100.";
+    const start = source.indexOf(passage);
+    await page.getByLabel("Span start").fill(String(start));
+    await page.getByLabel("Span end").fill(String(start + passage.length));
+    await page.getByLabel("Verdict", { exact: true }).selectOption("contradicted");
+    await page.getByLabel("Rationale").fill("The passage says USD 100, not USD 120.");
+    await page.getByLabel("Reviewer label").fill("Synthetic reviewer");
+    await page.getByRole("button", { name: "Save review", exact: true }).click();
+    await expect(page.locator("#status")).toContainText("Saved");
+    const reviewed = await nativePacket();
+    expect(reviewed.reviews[0].text_quote.exact).toBe(passage);
+    await page.reload();
+    await page.getByLabel("Import packet", { exact: true }).setInputFiles({
+      name: "my-review.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(reviewed)),
+    });
+    await expect(page.locator("#history")).toContainText(passage);
+    await expect(page.locator("#history")).toContainText("The passage says USD 100, not USD 120.");
+    expect(await nativePacket()).toEqual(reviewed);
+  });
+
+  test("new row IDs skip edited collisions and ambiguous sources leave citations blank", async ({
+    page,
+  }) => {
+    const sources = page.locator('#builder [name="source-id"]');
+    const claims = page.locator('#builder [name="claim-id"]');
+    await sources.first().fill("source-2");
+    await page.getByRole("button", { name: "Add source", exact: true }).click();
+    await expect(sources.nth(1)).toHaveValue("source-3");
+    await expect(page.locator('#builder [name="source-title"]').nth(1)).toHaveValue("Source 2");
+    await expect(sources.first()).toHaveValue("source-2");
+    await expect(page.locator('#builder [name="claim-citations"]').first()).toHaveValue("source-1");
+    await claims.first().fill("claim-2");
+    await page.getByRole("button", { name: "Add claim", exact: true }).click();
+    await expect(claims.nth(1)).toHaveValue("claim-3");
+    await expect(page.locator('#builder [name="claim-citations"]').nth(1)).toHaveValue("");
+    await expect(claims.first()).toHaveValue("claim-2");
+    await sources.first().fill("source-3");
+    await sources.nth(1).fill("source-4");
+    await page.getByRole("button", { name: "Add source", exact: true }).click();
+    await expect(sources.nth(2)).toHaveValue("source-5");
+    await claims.first().fill("claim-3");
+    await claims.nth(1).fill("claim-4");
+    await page.getByRole("button", { name: "Add claim", exact: true }).click();
+    await expect(claims.nth(2)).toHaveValue("claim-5");
+  });
+
+  test("new claims cite the sole edited source ID but never a blank source ID", async ({
+    page,
+  }) => {
+    const sourceId = page.locator('#builder [name="source-id"]');
+    const citations = page.locator('#builder [name="claim-citations"]');
+    await sourceId.fill("my-source");
+    await page.getByRole("button", { name: "Add claim", exact: true }).click();
+    await expect(citations.nth(1)).toHaveValue("my-source");
+    await expect(citations.first()).toHaveValue("source-1");
+    await sourceId.fill("   ");
+    await page.getByRole("button", { name: "Add claim", exact: true }).click();
+    await expect(citations.nth(2)).toHaveValue("");
+    await expect(citations.nth(1)).toHaveValue("my-source");
+  });
+
+  test("edited IDs keep explicit citations and invalid replacement preserves current reviews", async ({
+    page,
+  }) => {
+    const builder = page.locator("#builder");
+    await builder.locator('[name="source-text"]').fill("My supplied evidence.");
+    await builder.locator('[name="claim-text"]').fill("My claim.");
+    await page.getByText("Synthetic worked judgments", { exact: true }).click();
+    await page
+      .getByRole("button", { name: "Load synthetic worked judgments", exact: true })
+      .click();
+    await expect(page.locator("#history p")).toHaveCount(4);
+    await page.getByLabel("Span start").fill("0");
+    await page.getByLabel("Span end").fill("10");
+    await page.getByLabel("Rationale").fill("A new synthetic review to keep.");
+    await page.getByLabel("Reviewer label").fill("Reviewer");
+    await page.getByRole("button", { name: "Save review", exact: true }).click();
+    await expect(page.locator("#history p")).toHaveCount(5);
+    await builder.locator('[name="source-id"]').fill("renamed-source");
+    await expect(builder.locator('[name="claim-citations"]')).toHaveValue("source-1");
+    await page.getByRole("button", { name: "Use packet", exact: true }).click();
+    await expect(page.locator("#builder-status")).toContainText(
+      "Click Use packet again to confirm",
+    );
+    await expect(page.locator("#history p")).toHaveCount(5);
+    await page.getByRole("button", { name: "Use packet", exact: true }).click();
+    await expect(page.locator("#builder-status")).toContainText("unknown citation");
+    await expect(page.locator("#history p")).toHaveCount(5);
+    await expect(page.locator("#history")).toContainText("A new synthetic review to keep.");
+    await builder.locator('[name="claim-citations"]').fill("renamed-source");
+    await page.getByRole("button", { name: "Use packet", exact: true }).click();
+    await expect(page.locator("#history p")).toHaveCount(5);
+    await page.getByRole("button", { name: "Use packet", exact: true }).click();
+    await expect(page.locator("#builder-status")).toContainText("Packet ready");
+    await expect(page.locator("#history p")).toHaveCount(0);
+    await expect(page.locator("#source-text")).toHaveValue("My supplied evidence.");
+  });
+});
 function malformedUtf8(value: unknown, bytes: number[]): Buffer {
   const raw = Buffer.from(JSON.stringify(value));
   const marker = Buffer.from(byteMarker);
