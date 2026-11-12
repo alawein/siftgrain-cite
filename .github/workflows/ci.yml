@@ -24,21 +24,21 @@ concurrency:
 
 jobs:
   run-markdown-lint:
-    uses: alawein/.github/.github/workflows/lint-markdown.yml@ebdb5b18e4e03a0a9a91ffdd4374dac8edf2ff6f # reviewed main
+    uses: alawein/.github/.github/workflows/lint-markdown.yml@f5dbd4d7656e286e20d2aa24463253c32a56521b # v1.4.0
 
   run-link-check:
-    uses: alawein/.github/.github/workflows/check-links.yml@ebdb5b18e4e03a0a9a91ffdd4374dac8edf2ff6f # reviewed main
+    uses: alawein/.github/.github/workflows/check-links.yml@f5dbd4d7656e286e20d2aa24463253c32a56521b # v1.4.0
 
   run-actionlint:
-    uses: alawein/.github/.github/workflows/lint-actions.yml@ebdb5b18e4e03a0a9a91ffdd4374dac8edf2ff6f # reviewed main
+    uses: alawein/.github/.github/workflows/lint-actions.yml@f5dbd4d7656e286e20d2aa24463253c32a56521b # v1.4.0
 
   run-pr-title:
     permissions:
       pull-requests: read
-    uses: alawein/.github/.github/workflows/pr-title.yml@ebdb5b18e4e03a0a9a91ffdd4374dac8edf2ff6f # reviewed main
+    uses: alawein/.github/.github/workflows/pr-title.yml@f5dbd4d7656e286e20d2aa24463253c32a56521b # v1.4.0
 
   run-node-ci:
-    uses: alawein/.github/.github/workflows/node-ci.yml@ebdb5b18e4e03a0a9a91ffdd4374dac8edf2ff6f # reviewed main
+    uses: alawein/.github/.github/workflows/node-ci.yml@f5dbd4d7656e286e20d2aa24463253c32a56521b # v1.4.0
     with:
       node-version: "22.23.2"
 
@@ -47,7 +47,7 @@ jobs:
   markdown-lint:
     needs: [run-markdown-lint]
     if: ${{ always() }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 1
     permissions: {}
     steps:
@@ -59,7 +59,7 @@ jobs:
   link-check:
     needs: [run-link-check]
     if: ${{ always() }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 1
     permissions: {}
     steps:
@@ -71,7 +71,7 @@ jobs:
   actionlint:
     needs: [run-actionlint]
     if: ${{ always() }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 1
     permissions: {}
     steps:
@@ -83,7 +83,7 @@ jobs:
   pr-title:
     needs: [run-pr-title]
     if: ${{ always() }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 1
     permissions: {}
     steps:
@@ -101,7 +101,7 @@ jobs:
   node-ci:
     needs: [run-node-ci, schema-and-audit]
     if: ${{ always() }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 1
     permissions: {}
     steps:
@@ -112,7 +112,7 @@ jobs:
         run: test "$RESULT" = "success" && test "$LOCAL_RESULT" = "success"
 
   schema-and-audit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
