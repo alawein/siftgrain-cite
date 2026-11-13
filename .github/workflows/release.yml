@@ -10,7 +10,7 @@ concurrency:
 jobs:
   build:
     if: github.repository == 'alawein/siftgrain-cite'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: read
@@ -62,7 +62,7 @@ jobs:
           done
   publish:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment: npm
     permissions:
@@ -87,7 +87,7 @@ jobs:
   release-upload:
     needs: [build, publish]
     if: always() && needs.build.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: write
