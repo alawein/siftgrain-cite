@@ -6,7 +6,24 @@
   identifiers, draft storage key and export filenames are unchanged for
   compatibility; consumers installing the old package name must switch.
 
-Siftgrain Cite display identity, shared dark/light tokens and four runtime vibes, guarded preferences and bounded WebGL2 completion. Add common trace JSON/JSONL import, keyboard queue, atomic reviewer merge and nominal agreement metrics, analysis label/CSV exports, standalone performance budget and accessibility checks. Native version 2 and v0.2 migration remain compatible. Benchmarks add Unicode/staleness integrity and checksum-pinned external ALCE label preservation without new semantic accuracy claims.
+- Add the synthetic Agent Acceptance citation review demo.
+- Build the Siftgrain Cite offline citation studio: display identity, shared
+  dark/light tokens, common trace JSON/JSONL import, keyboard queue, reviewer
+  merge with nominal agreement metrics, AIS/ALCE label and CSV exports, and
+  standalone performance budget and accessibility checks. Native version 2 and
+  v0.2 migration remain compatible. Benchmarks add Unicode/staleness integrity
+  and checksum-pinned external ALCE label preservation without new semantic
+  accuracy claims.
+- Guide acceptance review and native packet resumption; preserve packet work
+  before native import, reject malformed UTF-8 uploads, and disable draft
+  saving after storage failures.
+- Simplify around a minimal core: split `src/core` from `src/ui`, remove the
+  four runtime vibes and the WebGL2 effect added with the studio (preferences
+  now store theme only), and remove the root release records and `docs/requirements.md`.
+- Add the first citation review walkthrough, start a review from one pasted
+  source and claim with **New packet** and **Use packet**, and lead the page
+  with the user evidence workflow.
+- Pin the shared CI kit at v1.4.0.
 
 ## 0.3.2 (GitHub published; npm authentication pending)
 
