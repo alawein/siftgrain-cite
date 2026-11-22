@@ -6,7 +6,11 @@ Security fixes target the latest release only. Use the latest release when repor
 
 ## Report a vulnerability
 
-Email <contact@meshal.ai>. Do not open a public issue for a vulnerability.
+Use GitHub private vulnerability reporting: on the repository's Security tab, choose
+"Report a vulnerability". Only the maintainer sees the report. Do not open a public
+issue or pull request for a vulnerability. The shared
+[security policy](https://github.com/alawein/.github/blob/main/SECURITY.md) covers
+response times and scope across alawein repositories.
 Include the affected version, steps to reproduce, expected behavior, and observed impact.
 Use synthetic packet content and leave out private source text, credentials, and personal data.
 
