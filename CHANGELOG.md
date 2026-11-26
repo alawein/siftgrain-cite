@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.0
 
 - Rename the npm package to `siftgrain-cite`. The packet namespace, schema
   identifiers, draft storage key and export filenames are unchanged for
