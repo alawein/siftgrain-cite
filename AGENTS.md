@@ -34,3 +34,7 @@ report-only dependency audits instead. Credentials remain owner-entered and
 managed through the established secret owner; never print or commit them.
 Preserve existing release tags and feature branches. No force pushes, unrelated
 remote changes, new repositories, or kohyr copies are part of this closeout.
+
+## Review guidelines
+
+Apply [`REVIEW.md`](REVIEW.md) and the shared [reviewer policy](https://github.com/alawein/.github/blob/main/docs/system/reviewers.md). Kilo Code reviews automatically; CodeRabbit only where the owner allow-lists this repository; Bugbot, Codex, Claude and Copilot run only on a named owner request.
